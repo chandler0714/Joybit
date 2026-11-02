@@ -1,18 +1,19 @@
 import React from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RotatedSession } from './GameHost';
 import { SteadyDropNativeView } from '../../modules/steady-drop';
 
 type Props = { session: Session; onExit(): void; onSessionRotated(value: RotatedSession): void };
 
 export function SteadyDropScreen({ session, onExit, onSessionRotated }: Props) {
+  const { top } = useSafeAreaInsets();
   if (Platform.OS !== 'ios') return <View style={s.fallback}><Text style={s.text}>Hexa Landing 的原生版本目前仅支持 iOS</Text><Pressable onPress={onExit}><Text style={s.link}>返回游戏列表</Text></Pressable></View>;
   return <View style={s.screen}>
-    <View style={s.toolbar}><Pressable accessibilityLabel="返回 Joybit" onPress={onExit} style={s.backButton}><Text style={s.backText}>‹  Joybit</Text></Pressable></View>
+    <View testID="native-game-toolbar" style={[s.toolbar, { height: 52 + top, paddingTop: top }]}><Pressable accessibilityLabel="返回 Joybit" onPress={onExit} style={s.backButton}><Text style={s.backText}>‹  Joybit</Text></Pressable></View>
     <SteadyDropNativeView style={s.game}
-      accessToken={session.access_token} refreshToken={session.refresh_token}
-      userId={session.user.id} email={session.user.email ?? ''}
+      sessionJson={JSON.stringify({ accessToken: session.access_token, refreshToken: session.refresh_token, userId: session.user.id, email: session.user.email ?? '' })}
       onExit={onExit}
       onSessionRotated={event => onSessionRotated(event.nativeEvent)} />
   </View>;

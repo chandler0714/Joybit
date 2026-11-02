@@ -32,3 +32,44 @@ test('subscribers receive changed favorite IDs', async () => {
   await favorites.toggle('steady-drop');
   expect(observed).toEqual([['steady-drop']]);
 });
+
+test('concurrent guest taps serialize, including a delayed storage write', async () => {
+  const values = new Map<string, string>();
+  let releaseFirst: (() => void) | undefined;
+  let writes = 0;
+  const storage = {
+    async getItem(key: string) { return values.get(key) ?? null; },
+    async setItem(key: string, value: string) {
+      writes += 1;
+      if (writes === 1) await new Promise<void>(resolve => { releaseFirst = resolve; });
+      values.set(key, value);
+    },
+  };
+  const favorites = new FavoritesStore(storage);
+  const first = favorites.toggle('steady-drop');
+  const second = favorites.toggle('steady-drop');
+  while (!releaseFirst) await Promise.resolve();
+  releaseFirst();
+  await Promise.all([first, second]);
+  expect(await favorites.load()).toEqual([]);
+  expect(await new FavoritesStore(storage).load()).toEqual([]);
+});
+
+test('replacing favorites waits for an in-flight initial read', async () => {
+  let releaseRead: ((value: string | null) => void) | undefined;
+  let wrote = false;
+  const storage = {
+    getItem: () => new Promise<string | null>(resolve => { releaseRead = resolve; }),
+    async setItem() { wrote = true; },
+  };
+  const favorites = new FavoritesStore(storage);
+  const loading = favorites.load();
+  while (!releaseRead) await Promise.resolve();
+  const replacing = favorites.replace(['steady-drop']);
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(wrote).toBe(false);
+  releaseRead('[]');
+  await Promise.all([loading, replacing]);
+  expect(await favorites.load()).toEqual(['steady-drop']);
+});

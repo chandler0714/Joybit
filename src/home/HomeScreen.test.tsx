@@ -66,3 +66,11 @@ test('favorites menu shows the saved game and can return to catalog', async () =
   await fireEvent.press(screen.getByLabelText('返回游戏列表'));
   expect(screen.getByText('精选游戏')).toBeTruthy();
 });
+
+test('signed-in users can retry a failed favorites sync', async () => {
+  const onRetryFavorites = jest.fn();
+  await render(<HomeScreen games={GAMES} favoriteIds={[]} onToggleFavorite={jest.fn()} onOpenGame={jest.fn()}
+    account={{ displayName: 'player@example.com' }} favoritesStatus="error" onRetryFavorites={onRetryFavorites} />);
+  await fireEvent.press(screen.getByLabelText('重试收藏同步'));
+  expect(onRetryFavorites).toHaveBeenCalledTimes(1);
+});

@@ -38,7 +38,7 @@
     "test:unit": "node --test src/catalog/*.test.ts",
     "test:ui": "jest --runInBand",
     "test": "npm run test:unit && npm run test:ui",
-    "test:disclick": "bash vendor/disclick/scripts/test-core.sh && bash vendor/disclick/scripts/test-auth.sh && bash vendor/disclick/scripts/test-lives.sh && bash scripts/test-native-boundary.sh",
+    "test:disclick": "bash vendor/disclick/scripts/test-core.sh && bash vendor/disclick/scripts/test-auth.sh && bash vendor/disclick/scripts/test-lives.sh && bash scripts/test-native-boundary.sh && node scripts/test-native-containment.mjs",
     "sync:disclick": "node scripts/sync-disclick.mjs",
     "typecheck": "tsc --noEmit"
   },

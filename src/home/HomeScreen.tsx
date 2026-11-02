@@ -7,9 +7,9 @@ import { Drawer, type DrawerPanel } from './Drawer';
 import { GameCard } from './GameCard';
 
 type Panel = 'home' | DrawerPanel;
-type Props = { games: readonly Game[]; favoriteIds: string[]; onToggleFavorite(id: string): void; onOpenGame(id: string): void; account: { displayName: string } | null; onSignIn?(): void; onSignOut?(): void; onDeleteAccount?(): void };
+type Props = { games: readonly Game[]; favoriteIds: string[]; onToggleFavorite(id: string): void; onOpenGame(id: string): void; account: { displayName: string } | null; favoritesStatus?: 'idle' | 'syncing' | 'ready' | 'error'; onRetryFavorites?(): void; onSignIn?(): void; onSignOut?(): void; onDeleteAccount?(): void };
 
-export function HomeScreen({ games, favoriteIds, onToggleFavorite, onOpenGame, account, onSignIn, onSignOut, onDeleteAccount }: Props) {
+export function HomeScreen({ games, favoriteIds, onToggleFavorite, onOpenGame, account, favoritesStatus = 'idle', onRetryFavorites, onSignIn, onSignOut, onDeleteAccount }: Props) {
   const { width } = useWindowDimensions();
   const cardWidth = (width - 48) / 2;
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -28,6 +28,8 @@ export function HomeScreen({ games, favoriteIds, onToggleFavorite, onOpenGame, a
     </View>
     <View style={s.content}>
       <Text style={s.eyebrow}>PICK UP & PLAY</Text><Text style={s.heading}>{title}</Text>
+      {account && favoritesStatus === 'error' && <Pressable onPress={onRetryFavorites} accessibilityLabel="重试收藏同步" style={s.syncBanner}><Text style={s.syncText}>收藏同步失败，点击重试</Text></Pressable>}
+      {account && favoritesStatus === 'syncing' && <Text style={s.syncHint}>正在同步收藏…</Text>}
       {panel === 'profile' ? <View style={s.panelCard}><Text style={s.panelTitle}>{account?.displayName ?? '访客'}</Text><Text style={s.panelDetail}>{account ? '欢迎来到 Joybit' : '登录后可同步收藏并进入游戏'}</Text>
           {account ? <><Pressable onPress={onSignOut} accessibilityLabel="退出登录" style={s.action}><Text style={s.actionText}>退出登录</Text></Pressable><Pressable onPress={onDeleteAccount} accessibilityLabel="删除账号" style={s.action}><Text style={s.dangerText}>删除账号</Text></Pressable></>
             : <Pressable onPress={onSignIn} accessibilityLabel="登录 Joybit" style={s.action}><Text style={s.actionText}>登录 / 注册</Text></Pressable>}</View>
@@ -63,4 +65,7 @@ const s = StyleSheet.create({
   action: { paddingVertical: 14, marginTop: 12 },
   actionText: { color: '#25767C', fontWeight: '800', fontSize: 15 },
   dangerText: { color: '#BF5B59', fontWeight: '700', fontSize: 14 },
+  syncBanner: { backgroundColor: '#FFF1DF', borderRadius: 10, padding: 12, marginBottom: 12 },
+  syncText: { color: '#90562C', fontWeight: '700', fontSize: 13 },
+  syncHint: { color: '#81939D', fontSize: 12, marginBottom: 12 },
 });

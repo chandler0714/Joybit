@@ -4,10 +4,7 @@ import { requireNativeViewManager } from 'expo-modules-core';
 
 type Event<T> = { nativeEvent: T };
 type Props = ViewProps & {
-  accessToken: string;
-  refreshToken: string;
-  userId: string;
-  email: string;
+  sessionJson: string;
   onExit(): void;
   onSessionRotated(event: Event<{ accessToken: string; refreshToken: string; userId: string }>): void;
 };
