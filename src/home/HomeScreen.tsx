@@ -7,9 +7,9 @@ import { Drawer, type DrawerPanel } from './Drawer';
 import { GameCard } from './GameCard';
 
 type Panel = 'home' | DrawerPanel;
-type Props = { games: readonly Game[]; favoriteIds: string[]; onToggleFavorite(id: string): void; onOpenGame(id: string): void; account: { displayName: string } | null };
+type Props = { games: readonly Game[]; favoriteIds: string[]; onToggleFavorite(id: string): void; onOpenGame(id: string): void; account: { displayName: string } | null; onSignIn?(): void; onSignOut?(): void; onDeleteAccount?(): void };
 
-export function HomeScreen({ games, favoriteIds, onToggleFavorite, onOpenGame, account }: Props) {
+export function HomeScreen({ games, favoriteIds, onToggleFavorite, onOpenGame, account, onSignIn, onSignOut, onDeleteAccount }: Props) {
   const { width } = useWindowDimensions();
   const cardWidth = (width - 48) / 2;
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -28,7 +28,9 @@ export function HomeScreen({ games, favoriteIds, onToggleFavorite, onOpenGame, a
     </View>
     <View style={s.content}>
       <Text style={s.eyebrow}>PICK UP & PLAY</Text><Text style={s.heading}>{title}</Text>
-      {panel === 'profile' ? <View style={s.panelCard}><Text style={s.panelTitle}>{account?.displayName ?? '访客'}</Text><Text style={s.panelDetail}>{account ? '欢迎来到 Joybit' : '登录后可同步收藏并进入游戏'}</Text></View>
+      {panel === 'profile' ? <View style={s.panelCard}><Text style={s.panelTitle}>{account?.displayName ?? '访客'}</Text><Text style={s.panelDetail}>{account ? '欢迎来到 Joybit' : '登录后可同步收藏并进入游戏'}</Text>
+          {account ? <><Pressable onPress={onSignOut} accessibilityLabel="退出登录" style={s.action}><Text style={s.actionText}>退出登录</Text></Pressable><Pressable onPress={onDeleteAccount} accessibilityLabel="删除账号" style={s.action}><Text style={s.dangerText}>删除账号</Text></Pressable></>
+            : <Pressable onPress={onSignIn} accessibilityLabel="登录 Joybit" style={s.action}><Text style={s.actionText}>登录 / 注册</Text></Pressable>}</View>
         : panel === 'settings' ? <View style={s.panelCard}><Text style={s.panelTitle}>关于 Joybit</Text><Text style={s.panelDetail}>小游戏，一点就开玩。</Text></View>
         : <FlatList testID="game-grid" data={visibleGames} numColumns={2} keyExtractor={(game) => game.id}
             columnWrapperStyle={s.row} contentContainerStyle={s.grid}
@@ -58,4 +60,7 @@ const s = StyleSheet.create({
   panelCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 22, borderWidth: 1, borderColor: '#E9EEF1' },
   panelTitle: { color: '#1C3545', fontSize: 17, fontWeight: '800' },
   panelDetail: { color: '#81939D', fontSize: 13, marginTop: 8 },
+  action: { paddingVertical: 14, marginTop: 12 },
+  actionText: { color: '#25767C', fontWeight: '800', fontSize: 15 },
+  dangerText: { color: '#BF5B59', fontWeight: '700', fontSize: 14 },
 });

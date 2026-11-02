@@ -28,6 +28,15 @@ export class FavoritesStore {
     return [...next];
   }
 
+  async replace(ids: string[]): Promise<string[]> {
+    const next = [...new Set(ids)];
+    await this.storage.setItem(KEY, JSON.stringify(next));
+    this.ids = next;
+    this.loaded = true;
+    this.listeners.forEach((listener) => listener([...next]));
+    return [...next];
+  }
+
   subscribe(listener: (ids: string[]) => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
