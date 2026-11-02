@@ -4,5 +4,6 @@
     "strict": true,
     "allowImportingTsExtensions": true,
     "types": ["node", "jest"]
-  }
+  },
+  "exclude": ["vendor", "ios", "android"]
 }

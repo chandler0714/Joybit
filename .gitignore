@@ -3,6 +3,8 @@
 # dependencies
 node_modules/
 .npm-cache/
+.gems/
+.build/
 
 # Expo
 .expo/

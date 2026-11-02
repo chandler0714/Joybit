@@ -1,0 +1,6 @@
+[functions.admob-reward]
+verify_jwt = false
+
+[functions.delete-account]
+# Handler validates bearer against Auth /user; compatible with publishable keys and ES256 sessions.
+verify_jwt = false

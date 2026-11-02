@@ -1,0 +1,12 @@
+# Account lives and rewarded revival
+Approved in chat: daily top-up to 5, retaining larger balances; server account storage; rewarded video; retry counts as loss, home does not; all wins earn 10%.
+
+Each authenticated account begins with 5 lives and 0/100 progress. A server-observed local calendar day change tops up to max(5, balance), never past 99. Progress persists across days. Time zone is captured at account creation; subsequent device time-zone changes do not grant extra top-ups. Failure consumes one life once per round. Success grants 10 points; reaching 100 resets points to 0, adds one life unless already at 99. At cap the progress cycle still resets. No zero-life round can begin. Retry during an active round settles it as failure. Going home abandons the round without loss or reward.
+
+Supabase PostgreSQL owns balances, row locks and idempotent round settlement. One open round per account; starting another closes the abandoned one. Client shows cached state only for display and requires online authorization before every round. A persisted pending settlement must be retried before another round; connection errors never become free rewards or lost failures. Existing local level progress stays local.
+
+SwiftUI HUD uses a pentagon in upper right, numeric balance and trimmed perimeter progress. Win sends an experience coin to the HUD; absorption scales/glows the badge. A completed progress cycle illuminates the whole outline before reset and shows +1 when a life was actually added. Pause moves left. Reduce Motion uses fades. English/Japanese/Korean copy.
+
+AdMob rewarded video is voluntary from the no-lives dialog. Only completed reward earns +1; dismissal/failure grants none. Production reward is verified by a Supabase Edge Function validating Google's ECDSA signature, approved ad unit and expiring account-bound nonce, with unique transaction IDs. Client polls authoritative balance; delayed callbacks can be recovered on relaunch. Test ads use Google's IDs, no fake timer rewards. Test ad rewards require explicit server debug switch off by default; release never invokes debug RPC.
+
+Approaches: device-only rejected for account persistence/reinstall bypass. Server ledger selected by user. No backend secrets in app. Database SQL/Edge Function deployment and live AdMob IDs require owner dashboard setup if no authenticated management access exists. Fail closed with retryable error before setup; no local fallback granting lives.

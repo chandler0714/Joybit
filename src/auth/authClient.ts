@@ -5,8 +5,12 @@ import * as SecureStore from 'expo-secure-store';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 const storageKey = 'joybit.auth.session';
-const storage = {
-  getItem: (key: string) => Platform.OS === 'web' ? AsyncStorage.getItem(key) : SecureStore.getItemAsync(key),
+export const sessionStorage = {
+  getItem: async (key: string) => {
+    if (Platform.OS === 'web') return AsyncStorage.getItem(key);
+    try { return await SecureStore.getItemAsync(key); }
+    catch { return null; }
+  },
   setItem: (key: string, value: string) => Platform.OS === 'web' ? AsyncStorage.setItem(key, value) : SecureStore.setItemAsync(key, value),
   removeItem: (key: string) => Platform.OS === 'web' ? AsyncStorage.removeItem(key) : SecureStore.deleteItemAsync(key),
 };
@@ -18,7 +22,7 @@ export function getAuthClient(): SupabaseClient {
   const key = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) throw new Error('缺少 Supabase 公共配置');
   client = createClient(url, key, {
-    auth: { storage, storageKey, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+    auth: { storage: sessionStorage, storageKey, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
   });
   return client;
 }

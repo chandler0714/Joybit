@@ -9,6 +9,8 @@ import { AuthScreen } from './src/auth/AuthScreen';
 import { FavoritesStore } from './src/favorites/favoritesStore';
 import { favoriteRemote, setCloudFavorite, syncFavorites } from './src/favorites/syncFavorites';
 import { HomeScreen } from './src/home/HomeScreen';
+import { GameHost } from './src/games/GameHost';
+import { getAuthClient } from './src/auth/authClient';
 
 function JoybitApp() {
   const auth = useAuth();
@@ -17,6 +19,7 @@ function JoybitApp() {
   const [cloudIds, setCloudIds] = useState<string[]>([]);
   const [authMode, setAuthMode] = useState<'signin' | 'delete' | null>(null);
   const [pendingGameId, setPendingGameId] = useState<string | null>(null);
+  const [activeGameId, setActiveGameId] = useState<string | null>(null);
   const lastUser = useRef<string | null>(null);
 
   useEffect(() => { void favorites.load().then(setGuestIds); return favorites.subscribe(setGuestIds); }, [favorites]);
@@ -44,7 +47,7 @@ function JoybitApp() {
   async function openGame(id: string) {
     const session = await auth.requireValidSession();
     if (!session) { setPendingGameId(id); setAuthMode('signin'); return; }
-    Alert.alert('游戏准备中', '正在接入 Hexa Landing。');
+    setActiveGameId(id);
   }
 
   async function toggleFavorite(id: string) {
@@ -57,6 +60,13 @@ function JoybitApp() {
   }
 
   if (authMode) return <AuthScreen initialMode={authMode} onClose={() => { setAuthMode(null); setPendingGameId(null); }} />;
+  const activeGame = GAMES.find(game => game.id === activeGameId);
+  if (activeGame) return <GameHost game={activeGame} session={auth.session} onExit={() => setActiveGameId(null)}
+    onSessionRotated={value => {
+      if (value.userId !== auth.session?.user.id) { setActiveGameId(null); return; }
+      void getAuthClient().auth.setSession({ access_token: value.accessToken, refresh_token: value.refreshToken })
+        .then(({ error }) => { if (error) { setActiveGameId(null); Alert.alert('游戏会话已失效', '请重新登录。'); } });
+    }} />;
   return <HomeScreen games={GAMES} favoriteIds={auth.session ? cloudIds : guestIds}
     onToggleFavorite={id => { void toggleFavorite(id); }} onOpenGame={id => { void openGame(id); }}
     account={auth.session ? { displayName: auth.session.user.email ?? 'Joybit 玩家' } : null}

@@ -9,6 +9,7 @@
     "@supabase/supabase-js": "^2.118.0",
     "expo": "~58.0.22",
     "expo-apple-authentication": "~58.0.2",
+    "expo-build-properties": "~58.0.12",
     "expo-crypto": "~58.0.7",
     "expo-linear-gradient": "~58.0.3",
     "expo-secure-store": "~58.0.2",
@@ -18,7 +19,8 @@
     "react-native": "0.88.1",
     "react-native-safe-area-context": "~5.10.1",
     "react-native-url-polyfill": "^4.0.0",
-    "react-native-web": "^0.21.4"
+    "react-native-web": "^0.21.4",
+    "react-native-webview": "14.0.1"
   },
   "devDependencies": {
     "@testing-library/react-native": "^14.1.0",
@@ -30,12 +32,14 @@
   },
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "test:unit": "node --test src/catalog/*.test.ts",
     "test:ui": "jest --runInBand",
     "test": "npm run test:unit && npm run test:ui",
+    "test:disclick": "bash vendor/disclick/scripts/test-core.sh && bash vendor/disclick/scripts/test-auth.sh && bash vendor/disclick/scripts/test-lives.sh && bash scripts/test-native-boundary.sh",
+    "sync:disclick": "node scripts/sync-disclick.mjs",
     "typecheck": "tsc --noEmit"
   },
   "private": true
