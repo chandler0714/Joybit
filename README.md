@@ -1,11 +1,46 @@
 # Joybit
 
-iOS-first mini-game collection built with React Native and Expo. The approved product design is in `docs/superpowers/specs/2026-11-02-joybit-design.md`.
+Joybit is an iOS-first mini-game collection. The React Native shell opens on a two-column catalog, with a left drawer for the profile, favorites, and settings. The first game is the native SwiftUI/SpriteKit **Hexa Landing / Steady Drop** game from the owner's separately maintained [disClick](https://github.com/chandler0714/disclick) app. H5 games can be added to the same catalog later.
 
-The first catalog item is Hexa Landing / Steady Drop from the owner's private `disclick` repository. The current catalog intentionally leaves its played count blank until a real data source is connected.
+## Run locally
 
-## Local setup
+Use Node.js 24, Xcode 26, an iOS 17+ simulator, and CocoaPods. Install JavaScript packages with `npm ci`.
 
-Use Node.js 24 and Xcode 26. Run `npm install`, then `npm start`. A development build is required once the native game module is added.
+Create an ignored `.env.local` with the **public** Supabase URL and publishable key from the disClick project:
 
-Run `npm test` for catalog logic and `npm run typecheck` for TypeScript checks.
+```dotenv
+EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLIC_KEY
+```
+
+Never put the service-role key in the app. The Joybit and disClick apps must point to the same Supabase project for one account and the same server-side lives.
+
+Run:
+
+```sh
+npm run sync:disclick
+npx expo prebuild --platform ios
+npm run ios
+```
+
+Use a **native development build**. Expo Go and the web preview cannot load the Swift game module. `npm run web` is useful for checking the catalog and login interface.
+
+## Verify
+
+```sh
+npm test
+npm run test:disclick
+npm run typecheck
+```
+
+The source snapshot is pinned at `4bc3680f62380a7eb63b0142461c75403d13298b` in `vendor/disclick/`. To update it, replace that snapshot from the owner-maintained repository, run `npm run sync:disclick`, review the generated Swift diff, then rerun the tests and iOS build. The sync excludes the standalone `@main` entry, removes in-game account actions, and adds Joybit's external-session entry. Joybit and the standalone game keep separate local level progress; no existing local progress is migrated.
+
+## Before release
+
+- Apply `supabase/migrations/20261102_joybit_favorites.sql` to the shared Supabase project. It creates user-owned favorites protected by row-level security. This repository has **not** applied it to production.
+- Enable Sign in with Apple for Joybit's bundle identifier and configure the Apple provider in Supabase. Email login uses the existing project; the `delete-account` Edge Function must remain deployed.
+- Configure Joybit-specific AdMob app/rewarded units using `EXPO_PUBLIC_JOYBIT_ADMOB_APP_ID` and `EXPO_PUBLIC_JOYBIT_REWARDED_AD_UNIT_ID`, then update the existing reward-verification backend to recognize Joybit's unit. The catalog banner is currently a labeled placeholder. The debug game uses Google's test rewarded unit.
+- Connect a real played-count source before showing player counts. Unknown values are intentionally hidden; the formatter displays exact values below 1,000 and floored integer units above that.
+- Port Steady Drop to Android before enabling that catalog item there. The React Native shell and H5 host are shared, but the native game is iOS-only today.
+
+See [verification.md](docs/verification.md) for the checks performed and remaining runtime limits. The approved scope is in [the design](docs/superpowers/specs/2026-11-02-joybit-design.md).
