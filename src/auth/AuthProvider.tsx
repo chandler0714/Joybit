@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
-import { clearCachedSession, getAuthClient, readCachedOfflineSession } from './authClient';
+import { clearCachedSession, createRecoveryClient, getAuthClient, readCachedOfflineSession } from './authClient';
+import { normalizeEmail } from './emailInput';
 
 type AuthContextValue = {
   session: Session | null;
@@ -9,6 +10,8 @@ type AuthContextValue = {
   signUp(email: string, password: string): Promise<boolean>;
   verifyEmail(email: string, code: string): Promise<void>;
   resendEmail(email: string): Promise<void>;
+  requestPasswordReset(email: string): Promise<void>;
+  resetPasswordWithCode(email: string, code: string, password: string): Promise<void>;
   signOut(): Promise<void>;
   deleteAccount(password?: string): Promise<void>;
   requireValidSession(): Promise<Session | null>;
@@ -16,7 +19,7 @@ type AuthContextValue = {
 
 const Context = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children, client: suppliedClient }: { children: React.ReactNode; client?: SupabaseClient }) {
+export function AuthProvider({ children, client: suppliedClient, recoveryClientFactory = createRecoveryClient }: { children: React.ReactNode; client?: SupabaseClient; recoveryClientFactory?: () => SupabaseClient }) {
   const client = useMemo(() => suppliedClient ?? getAuthClient(), [suppliedClient]);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,24 +42,43 @@ export function AuthProvider({ children, client: suppliedClient }: { children: R
   const value = useMemo<AuthContextValue>(() => ({
     session, loading,
     async signIn(email, password) {
-      const { data, error } = await client.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+      const { data, error } = await client.auth.signInWithPassword({ email: normalizeEmail(email), password });
       if (error) throw error;
       setSession(data.session);
     },
     async signUp(email, password) {
-      const { data, error } = await client.auth.signUp({ email: email.trim().toLowerCase(), password });
+      const { data, error } = await client.auth.signUp({ email: normalizeEmail(email), password });
       if (error) throw error;
       if (data.session) setSession(data.session);
       return Boolean(data.session);
     },
     async verifyEmail(email, code) {
-      const { data, error } = await client.auth.verifyOtp({ email: email.trim().toLowerCase(), token: code.trim(), type: 'email' });
+      const { data, error } = await client.auth.verifyOtp({ email: normalizeEmail(email), token: code.trim(), type: 'email' });
       if (error) throw error;
       setSession(data.session);
     },
     async resendEmail(email) {
-      const { error } = await client.auth.resend({ email: email.trim().toLowerCase(), type: 'signup' });
+      const { error } = await client.auth.resend({ email: normalizeEmail(email), type: 'signup' });
       if (error) throw error;
+    },
+    async requestPasswordReset(email) {
+      const { error } = await client.auth.resetPasswordForEmail(normalizeEmail(email));
+      if (error) throw error;
+    },
+    async resetPasswordWithCode(email, code, password) {
+      const recoveryClient = recoveryClientFactory();
+      const { data: verified, error: verifyError } = await recoveryClient.auth.verifyOtp({ email: normalizeEmail(email), token: code.trim(), type: 'recovery' });
+      if (verifyError) throw verifyError;
+      if (!verified.session) throw new Error('Recovery session missing');
+      const { error: updateError } = await recoveryClient.auth.updateUser({ password });
+      if (updateError) throw updateError;
+      const { data: promoted, error: promoteError } = await client.auth.setSession({
+        access_token: verified.session.access_token,
+        refresh_token: verified.session.refresh_token,
+      });
+      if (promoteError) throw promoteError;
+      if (!promoted.session) throw new Error('Session promotion failed');
+      setSession(promoted.session);
     },
     async signOut() {
       sessionEpoch.current += 1;
@@ -88,7 +110,7 @@ export function AuthProvider({ children, client: suppliedClient }: { children: R
       setSession(latest.data.session);
       return latest.data.session;
     },
-  }), [client, session, loading]);
+  }), [client, recoveryClientFactory, session, loading]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 

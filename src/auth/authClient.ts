@@ -44,6 +44,14 @@ export function getAuthClient(): SupabaseClient {
   return client;
 }
 
+export function createRecoveryClient(): SupabaseClient {
+  const { url, key } = authConfiguration();
+  if (!url || !key) throw new Error('缺少 Supabase 公共配置');
+  return createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+}
+
 export function authConfiguration() {
   return { url: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '', key: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '' };
 }
