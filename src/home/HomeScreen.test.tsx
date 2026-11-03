@@ -23,13 +23,16 @@ async function renderHome() {
   return { onToggleFavorite, onOpenGame };
 }
 
-test('catalog uses two columns without adding fake games', async () => {
+test('catalog uses two columns and shows four playable games without fake counts', async () => {
   await renderHome();
   const cardWidth = screen.getByTestId('game-card-steady-drop').parent?.props.style.width as number;
   expect(cardWidth).toBeGreaterThan(Dimensions.get('window').width * 0.4);
   expect(cardWidth).toBeLessThan(Dimensions.get('window').width * 0.55);
-  expect(screen.getAllByTestId(/^game-card-/)).toHaveLength(1);
+  expect(screen.getAllByTestId(/^game-card-/)).toHaveLength(4);
   expect(screen.getByText('Hexa Landing')).toBeTruthy();
+  expect(screen.getByText('反应挑战')).toBeTruthy();
+  expect(screen.getByText('记忆翻牌')).toBeTruthy();
+  expect(screen.getByText('数字拼图')).toBeTruthy();
   expect(screen.queryByText(/人玩过/)).toBeNull();
 });
 

@@ -20,9 +20,12 @@ test('played counts use floored integer units from one thousand', () => {
   assert.equal(formatPlayedCount(123456789), '1亿');
 });
 
-test('catalog contains only the available first game', () => {
+test('catalog contains the native game and three bundled mini games without invented counts', () => {
   assert.deepEqual(GAMES.map(({ id, kind }) => ({ id, kind })), [
     { id: 'steady-drop', kind: 'native' },
+    { id: 'reaction', kind: 'h5' },
+    { id: 'memory', kind: 'h5' },
+    { id: 'puzzle', kind: 'h5' },
   ]);
-  assert.equal(GAMES[0].playedCount, null);
+  assert.ok(GAMES.every(game => game.playedCount === null));
 });

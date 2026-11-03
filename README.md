@@ -1,6 +1,8 @@
 # Joybit
 
-Joybit is an iOS-first mini-game collection. The React Native shell opens on a two-column catalog, with a left drawer for the profile, favorites, and settings. The first game is the native SwiftUI/SpriteKit **Hexa Landing / Steady Drop** game from the owner's separately maintained [disClick](https://github.com/chandler0714/disclick) app. H5 games can be added to the same catalog later.
+Joybit is an iOS-first mini-game collection. The React Native shell opens on a two-column catalog, with a left drawer for the profile, favorites, and settings. It includes the native SwiftUI/SpriteKit **Hexa Landing / Steady Drop** game from the owner's separately maintained [disClick](https://github.com/chandler0714/disclick) app, plus three bundled offline mini games: **反应挑战**, **记忆翻牌**, and **数字拼图**.
+
+All four games require a Joybit login. Once signed in, the three bundled mini games can run without a network connection, including from a securely cached local session after a temporary network failure. The bundled WebView pages receive no account tokens and load no remote assets. Hexa Landing still needs online session validation and its backend for lives.
 
 ## Run locally
 

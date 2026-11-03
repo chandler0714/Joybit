@@ -38,6 +38,12 @@ function JoybitApp() {
   }, [auth.session?.user.id, pendingGameId]);
 
   async function openGame(id: string) {
+    const game = GAMES.find(item => item.id === id);
+    if (!game) return;
+    if (game.offlineHtmlKey) {
+      if (auth.session?.user?.id) { setActiveGameId(id); return; }
+      setPendingGameId(id); setAuthMode('signin'); return;
+    }
     const session = await auth.requireValidSession();
     if (!session) { setPendingGameId(id); setAuthMode('signin'); return; }
     setActiveGameId(id);

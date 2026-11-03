@@ -3,13 +3,24 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Game } from '../catalog/catalog';
 import { formatPlayedCount } from '../catalog/formatPlayedCount';
 
-const covers = { 'steady-drop': require('../../assets/steady-drop.png') };
 type Props = { game: Game; favorite: boolean; onOpen(): void; onToggleFavorite(): void };
+
+function Cover({ game }: { game: Game }) {
+  if (game.coverKey === 'steady-drop') return <Image source={require('../../assets/steady-drop.png')} style={s.image} accessibilityLabel={`${game.title} 主图`} />;
+  const colors = { reaction: '#F47A66', memory: '#7768BD', puzzle: '#54A9AC' };
+  return <View style={[s.art, { backgroundColor: colors[game.coverKey] }]} accessibilityLabel={`${game.title} 主图`}>
+    <View style={s.artGlow} />
+    {game.coverKey === 'reaction' ? <View style={s.target}><View style={s.targetInner} /></View>
+      : game.coverKey === 'memory' ? <View style={s.tileRow}><View style={s.memoryTile}><Text style={s.memorySymbol}>✦</Text></View><View style={s.memoryTile}><Text style={s.memorySymbol}>✦</Text></View></View>
+        : <View style={s.tileRow}><View style={s.puzzleTile}><Text style={s.puzzleNumber}>1</Text></View><View style={s.puzzleTile}><Text style={s.puzzleNumber}>2</Text></View><View style={s.puzzleTile}><Text style={s.puzzleNumber}>3</Text></View></View>}
+    <Text style={s.artCaption}>JOYBIT · PLAY</Text>
+  </View>;
+}
 
 export function GameCard({ game, favorite, onOpen, onToggleFavorite }: Props) {
   const count = formatPlayedCount(game.playedCount);
   return <Pressable testID={`game-card-${game.id}`} style={s.card} onPress={onOpen} accessibilityLabel={`打开 ${game.title}`}>
-    <View style={s.imageWrap}><Image source={covers[game.coverKey]} style={s.image} accessibilityLabel={`${game.title} 主图`} />
+    <View style={s.imageWrap}><Cover game={game} />
       <Pressable onPress={(event) => { event.stopPropagation(); onToggleFavorite(); }} accessibilityLabel={`${favorite ? '取消收藏' : '收藏'} ${game.title}`} accessibilityRole="button" style={s.favorite}>
         <Text style={[s.heart, favorite && s.heartActive]}>{favorite ? '♥' : '♡'}</Text>
       </Pressable>
@@ -22,6 +33,16 @@ const s = StyleSheet.create({
   card: { flex: 1, overflow: 'hidden', borderRadius: 20, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E9EEF1' },
   imageWrap: { width: '100%', aspectRatio: 1, backgroundColor: '#173B40' },
   image: { width: '100%', height: '100%' },
+  art: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  artGlow: { position: 'absolute', width: '90%', height: '90%', borderRadius: 999, borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)', top: '5%' },
+  target: { width: 96, height: 96, borderRadius: 48, borderWidth: 11, borderColor: '#FFF1DF', alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-12deg' }] },
+  targetInner: { width: 39, height: 39, borderRadius: 20, backgroundColor: '#FFF1DF' },
+  tileRow: { flexDirection: 'row', gap: 6, alignItems: 'center' },
+  memoryTile: { width: 55, height: 65, borderRadius: 12, backgroundColor: '#FDF2D6', alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-10deg' }] },
+  memorySymbol: { color: '#E07D92', fontSize: 38, fontWeight: '800' },
+  puzzleTile: { width: 37, height: 42, borderRadius: 9, backgroundColor: '#EDFAF2', alignItems: 'center', justifyContent: 'center' },
+  puzzleNumber: { color: '#25717D', fontSize: 24, fontWeight: '900' },
+  artCaption: { position: 'absolute', bottom: 12, left: 14, color: 'rgba(255,255,255,0.9)', fontSize: 9, fontWeight: '800', letterSpacing: 2 },
   favorite: { position: 'absolute', top: 9, right: 9, width: 34, height: 34, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.93)', alignItems: 'center', justifyContent: 'center' },
   heart: { color: '#546B78', fontSize: 24, lineHeight: 29 },
   heartActive: { color: '#F17872' },

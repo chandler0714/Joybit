@@ -5,22 +5,24 @@ import { WebView } from 'react-native-webview';
 import type { Session } from '@supabase/supabase-js';
 import type { Game } from '../catalog/catalog';
 import { SteadyDropScreen } from './SteadyDropScreen';
+import { getMiniGameHtml } from '../miniGames';
 
 export type RotatedSession = { accessToken: string; refreshToken: string; userId: string };
 type Props = { game: Game; session: Session | null; onExit(): void; onSessionRotated(value: RotatedSession): void };
 
 export function GameHost({ game, session, onExit, onSessionRotated }: Props) {
-  if (!session || !session.access_token || !session.refresh_token || !session.user.id ||
-      (session.expires_at != null && session.expires_at <= Math.floor(Date.now() / 1000) + 30)) {
+  const bundled = Boolean(game.offlineHtmlKey);
+  if (!session?.user?.id || (!bundled && (!session.access_token || !session.refresh_token ||
+      (session.expires_at != null && session.expires_at <= Math.floor(Date.now() / 1000) + 30)))) {
     return <SafeAreaView style={s.blocked}><Text style={s.blockedText}>请先登录 Joybit</Text><Pressable onPress={onExit}><Text style={s.link}>返回游戏列表</Text></Pressable></SafeAreaView>;
   }
   if (game.kind === 'native') {
     return <SteadyDropScreen session={session} onExit={onExit} onSessionRotated={onSessionRotated} />;
   }
-  if (!game.h5Url) return <SafeAreaView style={s.blocked}><Text>游戏地址尚未配置</Text><Pressable onPress={onExit}><Text style={s.link}>返回游戏列表</Text></Pressable></SafeAreaView>;
+  if (!game.offlineHtmlKey && !game.h5Url) return <SafeAreaView style={s.blocked}><Text>游戏地址尚未配置</Text><Pressable onPress={onExit}><Text style={s.link}>返回游戏列表</Text></Pressable></SafeAreaView>;
   return <SafeAreaView style={s.webScreen}>
     <View style={s.toolbar}><Pressable accessibilityLabel="返回游戏列表" onPress={onExit}><Text style={s.back}>‹</Text></Pressable><Text style={s.title}>{game.title}</Text></View>
-    <WebView source={{ uri: game.h5Url }} style={s.web} />
+    <WebView source={game.offlineHtmlKey ? { html: getMiniGameHtml(game.offlineHtmlKey) } : { uri: game.h5Url! }} originWhitelist={game.offlineHtmlKey ? ['*'] : undefined} style={s.web} />
   </SafeAreaView>;
 }
 

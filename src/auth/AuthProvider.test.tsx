@@ -4,6 +4,11 @@ import { Text, Pressable } from 'react-native';
 import { AuthProvider, useAuth } from './AuthProvider';
 
 jest.mock('@react-native-async-storage/async-storage', () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn(async () => null),
+  setItemAsync: jest.fn(async () => {}),
+  deleteItemAsync: jest.fn(async () => {}),
+}));
 
 const session = { access_token: 'valid', refresh_token: 'refresh', expires_at: 2000000000, user: { id: 'u1', email: 'a@b.co' } };
 
@@ -62,4 +67,27 @@ test('an expired or revoked session cannot enter a game', async () => {
   await render(<AuthProvider client={client as never}><Gate /></AuthProvider>);
   await fireEvent.press(screen.getByText('gate'));
   await waitFor(() => expect(result).toBeNull());
+});
+
+test('a previously signed-in player keeps local game access after an offline restart', async () => {
+  const { getItemAsync } = require('expo-secure-store');
+  getItemAsync.mockResolvedValueOnce(JSON.stringify({ ...session, expires_at: 1 }));
+  const client = mockClient();
+  const networkError = Object.assign(new Error('offline'), { name: 'AuthRetryableFetchError' });
+  client.auth.getSession.mockResolvedValueOnce({ data: { session: null }, error: networkError } as never);
+  await render(<AuthProvider client={client as never}><Probe /></AuthProvider>);
+  await waitFor(() => expect(screen.getByText('u1')).toBeTruthy());
+  await fireEvent.press(screen.getByText('sign out'));
+  await waitFor(() => expect(screen.getByText('guest')).toBeTruthy());
+});
+
+test('a temporary network failure on native-game validation keeps the offline login', async () => {
+  const client = mockClient({ ...session, expires_at: 1 });
+  const networkError = Object.assign(new Error('offline'), { name: 'AuthRetryableFetchError' });
+  client.auth.refreshSession.mockResolvedValueOnce({ data: { session: null }, error: networkError } as never);
+  await render(<AuthProvider client={client as never}><Probe /></AuthProvider>);
+  await waitFor(() => expect(screen.getByText('u1')).toBeTruthy());
+  await fireEvent.press(screen.getByText('open game'));
+  await waitFor(() => expect(client.auth.refreshSession).toHaveBeenCalled());
+  expect(screen.getByText('u1')).toBeTruthy();
 });

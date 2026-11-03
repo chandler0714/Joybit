@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
-import { getAuthClient } from './authClient';
+import { getAuthClient, readCachedOfflineSession } from './authClient';
 
 type AuthContextValue = {
   session: Session | null;
@@ -24,9 +24,13 @@ export function AuthProvider({ children, client: suppliedClient }: { children: R
   useEffect(() => {
     let live = true;
     const { data: { subscription } } = client.auth.onAuthStateChange((_event, next) => { if (live) setSession(next); });
-    void client.auth.getSession().then(({ data, error }) => {
-      if (live) { setSession(error ? null : data.session); setLoading(false); }
-    }).catch(() => { if (live) setLoading(false); });
+    void client.auth.getSession().then(async ({ data, error }) => {
+      const cached = error?.name === 'AuthRetryableFetchError' ? await readCachedOfflineSession() : null;
+      if (live) { setSession(error ? cached : data.session); setLoading(false); }
+    }).catch(async error => {
+      const cached = error?.name === 'AuthRetryableFetchError' ? await readCachedOfflineSession() : null;
+      if (live) { setSession(cached); setLoading(false); }
+    });
     return () => { live = false; subscription.unsubscribe(); };
   }, [client]);
 
@@ -69,14 +73,14 @@ export function AuthProvider({ children, client: suppliedClient }: { children: R
       if (!session) return null;
       if (session.expires_at && session.expires_at <= Math.floor(Date.now() / 1000) + 30) {
         const { data, error } = await client.auth.refreshSession();
-        if (error || !data.session) { setSession(null); return null; }
+        if (error || !data.session) { if (error?.name !== 'AuthRetryableFetchError') setSession(null); return null; }
         setSession(data.session);
         return data.session;
       }
       const { error } = await client.auth.getUser();
-      if (error) { setSession(null); return null; }
+      if (error) { if (error.name !== 'AuthRetryableFetchError') setSession(null); return null; }
       const latest = await client.auth.getSession();
-      if (latest.error || !latest.data.session) { setSession(null); return null; }
+      if (latest.error || !latest.data.session) { if (latest.error?.name !== 'AuthRetryableFetchError') setSession(null); return null; }
       setSession(latest.data.session);
       return latest.data.session;
     },
