@@ -25,7 +25,6 @@
     },
     "plugins": [
       "expo-secure-store",
-      "expo-apple-authentication",
       ["expo-build-properties", { "ios": { "deploymentTarget": "17.0" } }]
     ]
   }

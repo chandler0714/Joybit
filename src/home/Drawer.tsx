@@ -1,15 +1,17 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export type DrawerPanel = 'profile' | 'favorites' | 'settings';
 type Props = { account: { displayName: string } | null; onClose(): void; onSelect(panel: DrawerPanel): void };
 
 export function Drawer({ account, onClose, onSelect }: Props) {
+  const { top, bottom } = useSafeAreaInsets();
   const position = useRef(new Animated.Value(-340)).current;
   useEffect(() => { Animated.timing(position, { toValue: 0, duration: 220, useNativeDriver: true }).start(); }, [position]);
   return <View style={s.layer}>
     <Pressable style={s.scrim} onPress={onClose} accessibilityLabel="点击空白处关闭菜单" />
-    <Animated.View style={[s.drawer, { transform: [{ translateX: position }] }]}>
+    <Animated.View testID="drawer-surface" style={[s.drawer, { paddingTop: top + 18, paddingBottom: bottom + 26, transform: [{ translateX: position }] }]}>
       <View style={s.top}><Text style={s.brand}>Joybit<Text style={s.dot}>.</Text></Text>
         <Pressable onPress={onClose} accessibilityLabel="关闭菜单" style={s.close}><Text style={s.closeText}>×</Text></Pressable>
       </View>
@@ -34,7 +36,7 @@ function MenuItem({ icon, label, onPress }: { icon: string; label: string; onPre
 const s = StyleSheet.create({
   layer: { ...StyleSheet.absoluteFill, zIndex: 20, flexDirection: 'row' },
   scrim: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(12,25,42,0.42)' },
-  drawer: { width: '82%', maxWidth: 340, height: '100%', backgroundColor: '#FFFFFF', paddingHorizontal: 24, paddingTop: 18, paddingBottom: 26 },
+  drawer: { width: '82%', maxWidth: 340, height: '100%', backgroundColor: '#FFFFFF', paddingHorizontal: 24 },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   brand: { fontSize: 27, fontWeight: '900', color: '#1A2C3D', letterSpacing: -1.5 },
   dot: { color: '#FFB94D' },

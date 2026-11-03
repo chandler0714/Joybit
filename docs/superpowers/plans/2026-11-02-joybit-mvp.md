@@ -1,5 +1,7 @@
 # Joybit MVP Implementation Plan
 
+> 2026-11-03 scope update: the user clarified that account registration currently supports email only. References to Apple login below record the original plan and are superseded by the email-only implementation.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build an iOS Joybit app with a two-column game catalog, drawer, favorites, bottom ad slot, one shared account, and in-app Steady Drop gameplay.

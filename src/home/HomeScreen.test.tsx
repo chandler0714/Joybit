@@ -1,13 +1,17 @@
 import React from 'react';
 import { Dimensions } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GAMES } from '../catalog/catalog';
 import { HomeScreen } from './HomeScreen';
+
+const safeArea = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 59, bottom: 34, left: 0, right: 0 } };
+const renderInSafeArea = (view: React.ReactElement) => render(<SafeAreaProvider initialMetrics={safeArea}>{view}</SafeAreaProvider>);
 
 async function renderHome() {
   const onToggleFavorite = jest.fn();
   const onOpenGame = jest.fn();
-  await render(
+  await renderInSafeArea(
     <HomeScreen
       games={GAMES}
       favoriteIds={[]}
@@ -50,7 +54,7 @@ test('drawer hides and restores the bottom ad slot', async () => {
 });
 
 test('favorites menu shows the saved game and can return to catalog', async () => {
-  await render(
+  await renderInSafeArea(
     <HomeScreen
       games={GAMES}
       favoriteIds={['steady-drop']}
@@ -69,7 +73,7 @@ test('favorites menu shows the saved game and can return to catalog', async () =
 
 test('signed-in users can retry a failed favorites sync', async () => {
   const onRetryFavorites = jest.fn();
-  await render(<HomeScreen games={GAMES} favoriteIds={[]} onToggleFavorite={jest.fn()} onOpenGame={jest.fn()}
+  await renderInSafeArea(<HomeScreen games={GAMES} favoriteIds={[]} onToggleFavorite={jest.fn()} onOpenGame={jest.fn()}
     account={{ displayName: 'player@example.com' }} favoritesStatus="error" onRetryFavorites={onRetryFavorites} />);
   await fireEvent.press(screen.getByLabelText('重试收藏同步'));
   expect(onRetryFavorites).toHaveBeenCalledTimes(1);

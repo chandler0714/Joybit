@@ -38,7 +38,7 @@ The source snapshot is pinned at `4bc3680f62380a7eb63b0142461c75403d13298b` in `
 ## Before release
 
 - Apply `supabase/migrations/20261102_joybit_favorites.sql` to the shared Supabase project. It creates user-owned favorites protected by row-level security. This repository has **not** applied it to production.
-- Enable Sign in with Apple for Joybit's bundle identifier and configure the Apple provider in Supabase. Email login uses the existing project; the `delete-account` Edge Function must remain deployed.
+- Joybit's first release uses email registration and password login only. Configure email verification in the shared Supabase project; the `delete-account` Edge Function must remain deployed.
 - Configure Joybit-specific AdMob app/rewarded units using `EXPO_PUBLIC_JOYBIT_ADMOB_APP_ID` and `EXPO_PUBLIC_JOYBIT_REWARDED_AD_UNIT_ID`, then update the existing reward-verification backend to recognize Joybit's unit. The catalog banner is currently a labeled placeholder. The debug game uses Google's test rewarded unit.
 - Connect a real played-count source before showing player counts. Unknown values are intentionally hidden; the formatter displays exact values below 1,000 and floored integer units above that.
 - Port Steady Drop to Android before enabling that catalog item there. The React Native shell and H5 host are shared, but the native game is iOS-only today.

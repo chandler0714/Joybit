@@ -6,7 +6,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: config.slug ?? 'joybit',
   ios: {
     ...config.ios,
-    usesAppleSignIn: true,
     infoPlist: {
       ...config.ios?.infoPlist,
       SupabaseURL: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',

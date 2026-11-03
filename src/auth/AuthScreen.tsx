@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from './AuthProvider';
 
@@ -33,20 +33,13 @@ export function AuthScreen({ onClose, initialMode = 'signin' }: { onClose(): voi
     finally { setBusy(false); }
   }
 
-  async function apple() {
-    setBusy(true); setMessage('');
-    try { await auth.signInWithApple(); }
-    catch (error) { setMessage(error instanceof Error ? error.message : 'Apple 登录失败'); }
-    finally { setBusy(false); }
-  }
-
   return <SafeAreaView style={s.screen}>
     <Pressable accessibilityLabel="返回游戏列表" onPress={onClose} style={s.back}><Text style={s.backText}>‹</Text></Pressable>
     <Text style={s.brand}>Joybit<Text style={s.dot}>.</Text></Text>
     <Text style={s.heading}>{mode === 'delete' ? '删除账号' : mode === 'verify' ? '验证邮箱' : mode === 'signup' ? '创建账号' : '欢迎回来'}</Text>
     <Text style={s.subtitle}>{mode === 'delete' ? '请验证账号后继续' : '一个账号，收藏和游戏都能使用'}</Text>
     {mode !== 'delete' && <TextInput style={s.input} value={email} onChangeText={setEmail} placeholder="邮箱" keyboardType="email-address" autoCapitalize="none" accessibilityLabel="邮箱" />}
-    {(mode === 'signin' || mode === 'signup' || mode === 'delete') && <TextInput style={s.input} value={password} onChangeText={setPassword} placeholder={mode === 'delete' ? '当前密码（Apple 账号无需填写）' : '密码'} secureTextEntry accessibilityLabel="密码" />}
+    {(mode === 'signin' || mode === 'signup' || mode === 'delete') && <TextInput style={s.input} value={password} onChangeText={setPassword} placeholder={mode === 'delete' ? '当前密码' : '密码'} secureTextEntry accessibilityLabel="密码" />}
     {mode === 'verify' && <TextInput style={s.input} value={code} onChangeText={setCode} placeholder="邮箱验证码" keyboardType="number-pad" accessibilityLabel="邮箱验证码" />}
     {!!message && <Text style={s.message}>{message}</Text>}
     <Pressable disabled={busy} style={s.primary} onPress={() => void submit()}><Text style={s.primaryText}>{mode === 'delete' ? '删除账号' : mode === 'verify' ? '验证并登录' : mode === 'signup' ? '注册' : '登录'}</Text></Pressable>
@@ -54,7 +47,6 @@ export function AuthScreen({ onClose, initialMode = 'signin' }: { onClose(): voi
     {mode === 'signin' && <Pressable onPress={() => setMode('signup')} style={s.link}><Text style={s.linkText}>没有账号？注册</Text></Pressable>}
     {mode === 'signup' && <Pressable onPress={() => setMode('signin')} style={s.link}><Text style={s.linkText}>已有账号？登录</Text></Pressable>}
     {mode === 'verify' && <Pressable onPress={() => void auth.resendEmail(email).then(() => setMessage('验证码已重新发送')).catch(error => setMessage(error.message))} style={s.link}><Text style={s.linkText}>重发验证码</Text></Pressable>}
-    {Platform.OS === 'ios' && mode === 'signin' && <Pressable onPress={() => void apple()} style={s.apple}><Text style={s.appleText}>通过 Apple 登录</Text></Pressable>}
   </SafeAreaView>;
 }
 
@@ -69,6 +61,4 @@ const s = StyleSheet.create({
   primary: { backgroundColor: '#1F7179', borderRadius: 14, height: 54, alignItems: 'center', justifyContent: 'center', marginTop: 12 },
   primaryText: { color: '#FFF', fontSize: 16, fontWeight: '800' },
   link: { alignItems: 'center', padding: 16 }, linkText: { color: '#26777E', fontWeight: '700' },
-  apple: { backgroundColor: '#161D24', borderRadius: 14, alignItems: 'center', justifyContent: 'center', height: 52, marginTop: 16 },
-  appleText: { color: '#FFF', fontWeight: '700' },
 });

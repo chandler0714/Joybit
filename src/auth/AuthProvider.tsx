@@ -1,7 +1,4 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { Platform } from 'react-native';
-import * as AppleAuthentication from 'expo-apple-authentication';
-import * as Crypto from 'expo-crypto';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { getAuthClient } from './authClient';
 
@@ -12,23 +9,12 @@ type AuthContextValue = {
   signUp(email: string, password: string): Promise<boolean>;
   verifyEmail(email: string, code: string): Promise<void>;
   resendEmail(email: string): Promise<void>;
-  signInWithApple(): Promise<void>;
   signOut(): Promise<void>;
   deleteAccount(password?: string): Promise<void>;
   requireValidSession(): Promise<Session | null>;
 };
 
 const Context = createContext<AuthContextValue | null>(null);
-
-async function appleCredential() {
-  if (Platform.OS !== 'ios') throw new Error('Apple 登录仅支持 iOS');
-  const bytes = await Crypto.getRandomBytesAsync(32);
-  const nonce = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
-  const hashed = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, nonce);
-  const credential = await AppleAuthentication.signInAsync({ nonce: hashed, requestedScopes: [AppleAuthentication.AppleAuthenticationScope.EMAIL] });
-  if (!credential.identityToken) throw new Error('Apple 未返回身份凭证');
-  return { nonce, credential };
-}
 
 export function AuthProvider({ children, client: suppliedClient }: { children: React.ReactNode; client?: SupabaseClient }) {
   const client = useMemo(() => suppliedClient ?? getAuthClient(), [suppliedClient]);
@@ -66,12 +52,6 @@ export function AuthProvider({ children, client: suppliedClient }: { children: R
       const { error } = await client.auth.resend({ email: email.trim().toLowerCase(), type: 'signup' });
       if (error) throw error;
     },
-    async signInWithApple() {
-      const { nonce, credential } = await appleCredential();
-      const { data, error } = await client.auth.signInWithIdToken({ provider: 'apple', token: credential.identityToken!, nonce });
-      if (error) throw error;
-      setSession(data.session);
-    },
     async signOut() {
       const { error } = await client.auth.signOut({ scope: 'local' });
       if (error) throw error;
@@ -79,18 +59,8 @@ export function AuthProvider({ children, client: suppliedClient }: { children: R
     },
     async deleteAccount(password) {
       if (!session) throw new Error('请先登录');
-      let body: Record<string, string>;
-      if (session.user.app_metadata?.providers?.includes('apple')) {
-        const { nonce, credential } = await appleCredential();
-        if (!credential.authorizationCode) throw new Error('Apple 未返回授权码');
-        const { data, error } = await client.auth.signInWithIdToken({ provider: 'apple', token: credential.identityToken!, nonce });
-        if (error || data.user?.id !== session.user.id) throw new Error('Apple 账号验证失败');
-        body = { appleAuthorizationCode: credential.authorizationCode };
-      } else {
-        if (!password) throw new Error('请输入密码以删除账号');
-        body = { password };
-      }
-      const { data, error } = await client.functions.invoke('delete-account', { body });
+      if (!password) throw new Error('请输入密码以删除账号');
+      const { data, error } = await client.functions.invoke('delete-account', { body: { password } });
       if (error || data?.deleted !== true) throw error ?? new Error('删除账号失败');
       await client.auth.signOut({ scope: 'local' });
       setSession(null);
