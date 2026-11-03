@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
-import { getAuthClient, readCachedOfflineSession } from './authClient';
+import { clearCachedSession, getAuthClient, readCachedOfflineSession } from './authClient';
 
 type AuthContextValue = {
   session: Session | null;
@@ -20,16 +20,18 @@ export function AuthProvider({ children, client: suppliedClient }: { children: R
   const client = useMemo(() => suppliedClient ?? getAuthClient(), [suppliedClient]);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const sessionEpoch = useRef(0);
 
   useEffect(() => {
     let live = true;
+    const epoch = sessionEpoch.current;
     const { data: { subscription } } = client.auth.onAuthStateChange((_event, next) => { if (live) setSession(next); });
     void client.auth.getSession().then(async ({ data, error }) => {
       const cached = error?.name === 'AuthRetryableFetchError' ? await readCachedOfflineSession() : null;
-      if (live) { setSession(error ? cached : data.session); setLoading(false); }
+      if (live && sessionEpoch.current === epoch) { setSession(error ? cached : data.session); setLoading(false); }
     }).catch(async error => {
       const cached = error?.name === 'AuthRetryableFetchError' ? await readCachedOfflineSession() : null;
-      if (live) { setSession(cached); setLoading(false); }
+      if (live && sessionEpoch.current === epoch) { setSession(cached); setLoading(false); }
     });
     return () => { live = false; subscription.unsubscribe(); };
   }, [client]);
@@ -57,9 +59,11 @@ export function AuthProvider({ children, client: suppliedClient }: { children: R
       if (error) throw error;
     },
     async signOut() {
+      sessionEpoch.current += 1;
       const { error } = await client.auth.signOut({ scope: 'local' });
-      if (error) throw error;
+      if (error) await clearCachedSession();
       setSession(null);
+      setLoading(false);
     },
     async deleteAccount(password) {
       if (!session) throw new Error('请先登录');

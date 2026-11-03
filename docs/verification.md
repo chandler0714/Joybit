@@ -17,7 +17,7 @@
 
 Commands: `npm test`, `npm run test:disclick`, `npm run typecheck`, `git diff --check`, and `xcodebuild -workspace ios/Joybit.xcworkspace -scheme Joybit -configuration Debug -destination 'platform=iOS Simulator,id=78C682DC-905A-4484-88C7-28EF60C98375' CODE_SIGNING_ALLOWED=NO build`.
 
-The 2026-11-03 simulator inspection confirmed the earlier catalog rendering, guest favorites, the drawer/ad interaction, and guest-to-login routing. The newly added mini games passed 9 catalog/gameplay unit checks and 32 UI/state checks in 10 suites, plus TypeScript, native game boundary checks, and an iOS JavaScript export. Their final layout and touch flow have not yet been inspected in a signed iOS build. The local HTML preview in the in-app browser was rejected by its URL security policy, so no alternate browser route was used.
+The 2026-11-03 simulator inspection confirmed the earlier catalog rendering, guest favorites, the drawer/ad interaction, and guest-to-login routing. The newly added mini games passed 9 catalog/gameplay unit checks and 35 UI/state checks in 11 suites, plus TypeScript, native game boundary checks, and an iOS JavaScript export. Regression tests also cover offline sign-out of an expired cached session, a late session read after sign-out, and a single failed native-game validation without repeated retries. Their final layout and touch flow have not yet been inspected in a signed iOS build. The local HTML preview in the in-app browser was rejected by its URL security policy, so no alternate browser route was used.
 
 ## Not yet verified live
 

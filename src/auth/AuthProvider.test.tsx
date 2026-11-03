@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { Text, Pressable } from 'react-native';
 import { AuthProvider, useAuth } from './AuthProvider';
 
@@ -15,7 +15,7 @@ const session = { access_token: 'valid', refresh_token: 'refresh', expires_at: 2
 function Probe() {
   const auth = useAuth();
   return <>
-    <Text>{auth.loading ? 'loading' : auth.session?.user.id ?? 'guest'}</Text>
+    <Text>{auth.session?.user.id ?? (auth.loading ? 'loading' : 'guest')}</Text>
     <Pressable onPress={() => void auth.signIn('a@b.co', 'password')}><Text>sign in</Text></Pressable>
     <Pressable onPress={() => void auth.signOut()}><Text>sign out</Text></Pressable>
     <Pressable onPress={() => void auth.requireValidSession()}><Text>open game</Text></Pressable>
@@ -90,4 +90,38 @@ test('a temporary network failure on native-game validation keeps the offline lo
   await fireEvent.press(screen.getByText('open game'));
   await waitFor(() => expect(client.auth.refreshSession).toHaveBeenCalled());
   expect(screen.getByText('u1')).toBeTruthy();
+});
+
+test('signing out offline removes an expired cached login before the next launch', async () => {
+  const { getItemAsync, deleteItemAsync } = require('expo-secure-store');
+  let cached: string | null = JSON.stringify({ ...session, expires_at: 1 });
+  getItemAsync.mockImplementation(async () => cached);
+  deleteItemAsync.mockImplementation(async () => { cached = null; });
+  const client = mockClient(session);
+  const networkError = Object.assign(new Error('offline'), { name: 'AuthRetryableFetchError' });
+  client.auth.signOut.mockResolvedValueOnce({ error: networkError } as never);
+  const view = await render(<AuthProvider client={client as never}><Probe /></AuthProvider>);
+  await waitFor(() => expect(screen.getByText('u1')).toBeTruthy());
+  await fireEvent.press(screen.getByText('sign out'));
+  await waitFor(() => expect(screen.getByText('guest')).toBeTruthy());
+  expect(cached).toBeNull();
+  await view.unmount();
+  const restarted = mockClient();
+  restarted.auth.getSession.mockResolvedValueOnce({ data: { session: null }, error: networkError } as never);
+  await render(<AuthProvider client={restarted as never}><Probe /></AuthProvider>);
+  await waitFor(() => expect(screen.getByText('guest')).toBeTruthy());
+});
+
+test('a late startup session read cannot restore an account after sign-out', async () => {
+  let release!: (value: { data: { session: typeof session }; error: null }) => void;
+  const delayed = new Promise<{ data: { session: typeof session }; error: null }>(resolve => { release = resolve; });
+  const client = mockClient();
+  client.auth.getSession.mockReturnValueOnce(delayed);
+  await render(<AuthProvider client={client as never}><Probe /></AuthProvider>);
+  await fireEvent.press(screen.getByText('sign in'));
+  await waitFor(() => expect(screen.getByText('u1')).toBeTruthy());
+  await fireEvent.press(screen.getByText('sign out'));
+  await waitFor(() => expect(screen.getByText('guest')).toBeTruthy());
+  await act(async () => { release({ data: { session }, error: null }); await delayed; });
+  expect(screen.getByText('guest')).toBeTruthy();
 });

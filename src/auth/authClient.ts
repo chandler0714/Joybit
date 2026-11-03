@@ -28,6 +28,10 @@ export async function readCachedOfflineSession(): Promise<Session | null> {
   } catch { return null; }
 }
 
+export async function clearCachedSession(): Promise<void> {
+  await sessionStorage.removeItem(storageKey);
+}
+
 let client: SupabaseClient | null = null;
 export function getAuthClient(): SupabaseClient {
   if (client) return client;

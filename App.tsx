@@ -40,12 +40,12 @@ function JoybitApp() {
   async function openGame(id: string) {
     const game = GAMES.find(item => item.id === id);
     if (!game) return;
+    if (!auth.session?.user?.id) { setPendingGameId(id); setAuthMode('signin'); return; }
     if (game.offlineHtmlKey) {
-      if (auth.session?.user?.id) { setActiveGameId(id); return; }
-      setPendingGameId(id); setAuthMode('signin'); return;
+      setActiveGameId(id); return;
     }
     const session = await auth.requireValidSession();
-    if (!session) { setPendingGameId(id); setAuthMode('signin'); return; }
+    if (!session) { Alert.alert('暂时无法进入游戏', '请联网后重试；如登录已失效，请重新登录。'); return; }
     setActiveGameId(id);
   }
 
