@@ -1,43 +1,56 @@
 import React, { useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Game } from '../catalog/catalog';
 import { AdSlot } from './AdSlot';
 import { Drawer, type DrawerPanel } from './Drawer';
 import { GameCard } from './GameCard';
+import { LANGUAGE_CODES, LANGUAGE_NAMES, type LanguagePreference } from '../i18n/translations';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 type Panel = 'home' | DrawerPanel;
 type Props = { games: readonly Game[]; favoriteIds: string[]; onToggleFavorite(id: string): void; onOpenGame(id: string): void; account: { displayName: string } | null; favoritesStatus?: 'idle' | 'syncing' | 'ready' | 'error'; onRetryFavorites?(): void; onSignIn?(): void; onSignOut?(): void; onDeleteAccount?(): void };
 
 export function HomeScreen({ games, favoriteIds, onToggleFavorite, onOpenGame, account, favoritesStatus = 'idle', onRetryFavorites, onSignIn, onSignOut, onDeleteAccount }: Props) {
+  const { t, preference, setPreference } = useLanguage();
   const { width } = useWindowDimensions();
   const cardWidth = (width - 48) / 2;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [panel, setPanel] = useState<Panel>('home');
   const visibleGames = panel === 'favorites' ? games.filter((game) => favoriteIds.includes(game.id)) : games;
-  const title = panel === 'home' ? '精选游戏' : panel === 'favorites' ? '我的收藏' : panel === 'profile' ? '用户信息' : '设置';
+  const title = panel === 'home' ? t('homeTitle') : panel === 'favorites' ? t('favoritesTitle') : panel === 'profile' ? t('profileTitle') : t('settingsTitle');
 
   function openPanel(next: DrawerPanel) { setPanel(next); setDrawerOpen(false); }
 
   return <SafeAreaView style={s.screen} edges={['top', 'bottom']}>
     <View style={s.header}>
-      {panel === 'home' ? <Pressable style={s.headerButton} onPress={() => setDrawerOpen(true)} accessibilityLabel="打开菜单">
+      {panel === 'home' ? <Pressable style={s.headerButton} onPress={() => setDrawerOpen(true)} accessibilityLabel={t('menuOpen')}>
         <View style={s.menuLine} /><View style={s.menuLine} /><View style={s.menuLineShort} />
-      </Pressable> : <Pressable style={s.headerButton} onPress={() => setPanel('home')} accessibilityLabel="返回游戏列表"><Text style={s.backText}>‹</Text></Pressable>}
+      </Pressable> : <Pressable style={s.headerButton} onPress={() => setPanel('home')} accessibilityLabel={t('backToGames')}><Text style={s.backText}>‹</Text></Pressable>}
       <Text style={s.brand}>Joybit<Text style={s.brandDot}>.</Text></Text><View style={s.headerButton} />
     </View>
     <View style={s.content}>
-      <Text style={s.eyebrow}>PICK UP & PLAY</Text><Text style={s.heading}>{title}</Text>
-      {account && favoritesStatus === 'error' && <Pressable onPress={onRetryFavorites} accessibilityLabel="重试收藏同步" style={s.syncBanner}><Text style={s.syncText}>收藏同步失败，点击重试</Text></Pressable>}
-      {account && favoritesStatus === 'syncing' && <Text style={s.syncHint}>正在同步收藏…</Text>}
-      {panel === 'profile' ? <View style={s.panelCard}><Text style={s.panelTitle}>{account?.displayName ?? '访客'}</Text><Text style={s.panelDetail}>{account ? '欢迎来到 Joybit' : '登录后可同步收藏并进入游戏'}</Text>
-          {account ? <><Pressable onPress={onSignOut} accessibilityLabel="退出登录" style={s.action}><Text style={s.actionText}>退出登录</Text></Pressable><Pressable onPress={onDeleteAccount} accessibilityLabel="删除账号" style={s.action}><Text style={s.dangerText}>删除账号</Text></Pressable></>
-            : <Pressable onPress={onSignIn} accessibilityLabel="登录 Joybit" style={s.action}><Text style={s.actionText}>登录 / 注册</Text></Pressable>}</View>
-        : panel === 'settings' ? <View style={s.panelCard}><Text style={s.panelTitle}>关于 Joybit</Text><Text style={s.panelDetail}>小游戏，一点就开玩。</Text></View>
+      <Text style={s.eyebrow}>{t('homeEyebrow')}</Text><Text style={s.heading}>{title}</Text>
+      {account && favoritesStatus === 'error' && <Pressable onPress={onRetryFavorites} accessibilityLabel={t('retryFavorites')} style={s.syncBanner}><Text style={s.syncText}>{t('favoritesSyncFailed')}</Text></Pressable>}
+      {account && favoritesStatus === 'syncing' && <Text style={s.syncHint}>{t('favoritesSyncing')}</Text>}
+      {panel === 'profile' ? <View style={s.panelCard}><Text style={s.panelTitle}>{account?.displayName ?? t('guest')}</Text><Text style={s.panelDetail}>{account ? t('welcomeJoybit') : t('loginToSync')}</Text>
+          {account ? <><Pressable onPress={onSignOut} accessibilityLabel={t('signOut')} style={s.action}><Text style={s.actionText}>{t('signOut')}</Text></Pressable><Pressable onPress={onDeleteAccount} accessibilityLabel={t('deleteAccount')} style={s.action}><Text style={s.dangerText}>{t('deleteAccount')}</Text></Pressable></>
+            : <Pressable onPress={onSignIn} accessibilityLabel={t('signInJoybit')} style={s.action}><Text style={s.actionText}>{t('loginRegister')}</Text></Pressable>}</View>
+        : panel === 'settings' ? <ScrollView contentContainerStyle={s.settingsContent}>
+            <View style={s.panelCard}><Text style={s.panelTitle}>{t('language')}</Text>
+              {(['auto', ...LANGUAGE_CODES] as LanguagePreference[]).map(option => <Pressable key={option}
+                accessibilityRole="radio" accessibilityState={{ selected: preference === option }}
+                onPress={() => { void setPreference(option); }} style={s.languageRow}>
+                <Text style={s.languageText}>{option === 'auto' ? t('autoLanguage') : LANGUAGE_NAMES[option]}</Text>
+                {preference === option && <Text style={s.languageSelected}>✓</Text>}
+              </Pressable>)}
+            </View>
+            <View style={s.panelCard}><Text style={s.panelTitle}>{t('aboutJoybit')}</Text><Text style={s.panelDetail}>{t('aboutDetail')}</Text></View>
+          </ScrollView>
         : <FlatList testID="game-grid" data={visibleGames} numColumns={2} keyExtractor={(game) => game.id}
             columnWrapperStyle={s.row} contentContainerStyle={s.grid}
             renderItem={({ item }) => <View style={{ width: cardWidth }}><GameCard game={item} favorite={favoriteIds.includes(item.id)} onOpen={() => onOpenGame(item.id)} onToggleFavorite={() => onToggleFavorite(item.id)} /></View>}
-            ListEmptyComponent={<Text style={s.empty}>这里还没有收藏的游戏</Text>} />}
+            ListEmptyComponent={<Text style={s.empty}>{t('noFavorites')}</Text>} />}
     </View>
     {!drawerOpen && <AdSlot />}
     {drawerOpen && <Drawer account={account} onClose={() => setDrawerOpen(false)} onSelect={openPanel} />}
@@ -60,6 +73,10 @@ const s = StyleSheet.create({
   grid: { paddingBottom: 18 },
   empty: { color: '#94A5AE', fontSize: 14, textAlign: 'center', marginTop: 80 },
   panelCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 22, borderWidth: 1, borderColor: '#E9EEF1' },
+  settingsContent: { gap: 12, paddingBottom: 24 },
+  languageRow: { minHeight: 45, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: '#E9EEF1' },
+  languageText: { color: '#273E4D', fontSize: 14, flexShrink: 1, paddingRight: 12 },
+  languageSelected: { color: '#25767C', fontSize: 18, fontWeight: '800' },
   panelTitle: { color: '#1C3545', fontSize: 17, fontWeight: '800' },
   panelDetail: { color: '#81939D', fontSize: 13, marginTop: 8 },
   action: { paddingVertical: 14, marginTop: 12 },

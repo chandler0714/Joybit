@@ -1,6 +1,8 @@
 # Joybit
 
-Joybit is an iOS-first mini-game collection. The React Native shell opens on a two-column catalog, with a left drawer for the profile, favorites, and settings. It includes the native SwiftUI/SpriteKit **Hexa Landing / Steady Drop** game from the owner's separately maintained [disClick](https://github.com/chandler0714/disclick) app, plus three bundled offline mini games: **反应挑战**, **记忆翻牌**, and **数字拼图**.
+Joybit is an iOS-first mini-game collection. The React Native shell opens on a two-column catalog, with a left drawer for the profile, favorites, and settings. It includes the native SwiftUI/SpriteKit **Hexa Landing / Steady Drop** game from the owner's separately maintained [disClick](https://github.com/chandler0714/disclick) app, plus three bundled offline mini games: **Reaction Rush**, **Memory Match**, and **Number Puzzle**.
+
+The Joybit shell and all three bundled games support English, Japanese, Korean, French, Spanish, Russian, and German. Joybit follows the device language by default and offers a persistent override in Settings. Unsupported device languages fall back to English. Hexa Landing's own game interior still uses its separately maintained English/Japanese/Korean localization; Joybit's game toolbar follows the Joybit language choice.
 
 All four games require a Joybit login. Once signed in, the three bundled mini games can run without a network connection, including from a securely cached local session after a temporary network failure. The bundled WebView pages receive no account tokens and load no remote assets. Hexa Landing still needs online session validation and its backend for lives.
 
@@ -40,9 +42,9 @@ The source snapshot is pinned at `4bc3680f62380a7eb63b0142461c75403d13298b` in `
 ## Before release
 
 - Apply `supabase/migrations/20261102_joybit_favorites.sql` to the shared Supabase project. It creates user-owned favorites protected by row-level security. This repository has **not** applied it to production.
-- Joybit's first release uses email registration and password login only. Configure email verification in the shared Supabase project; the `delete-account` Edge Function must remain deployed.
+- Joybit's first release uses email registration and password login only. Configure email verification in the shared Supabase project; the `delete-account` Edge Function must remain deployed. Email delivery changes are deferred.
 - Configure Joybit-specific AdMob app/rewarded units using `EXPO_PUBLIC_JOYBIT_ADMOB_APP_ID` and `EXPO_PUBLIC_JOYBIT_REWARDED_AD_UNIT_ID`, then update the existing reward-verification backend to recognize Joybit's unit. The catalog banner is currently a labeled placeholder. The debug game uses Google's test rewarded unit.
 - Connect a real played-count source before showing player counts. Unknown values are intentionally hidden; the formatter displays exact values below 1,000 and floored integer units above that.
 - Port Steady Drop to Android before enabling that catalog item there. The React Native shell and H5 host are shared, but the native game is iOS-only today.
 
-See [verification.md](docs/verification.md) for the checks performed and remaining runtime limits. The approved scope is in [the design](docs/superpowers/specs/2026-11-02-joybit-design.md).
+See [verification.md](docs/verification.md) for the checks performed and remaining runtime limits. The approved scopes are in the [platform design](docs/superpowers/specs/2026-11-02-joybit-design.md) and [seven-language design](docs/superpowers/specs/2026-11-03-joybit-seven-languages-design.md).

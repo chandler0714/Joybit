@@ -34,7 +34,7 @@ test('offline native validation stops once and leaves the signed-in catalog usab
   const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
   await render(<App />);
   await fireEvent.press(screen.getByText('open native'));
-  await waitFor(() => expect(alert).toHaveBeenCalledWith('暂时无法进入游戏', expect.any(String)));
+  await waitFor(() => expect(alert).toHaveBeenCalledWith('Game unavailable', expect.any(String)));
   expect(mockRequireValidSession).toHaveBeenCalledTimes(1);
   expect(screen.getByText('open native')).toBeTruthy();
   expect(screen.queryByText('auth screen')).toBeNull();

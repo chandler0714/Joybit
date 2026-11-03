@@ -1,10 +1,13 @@
-import { gamePage } from './page.ts';
+import { translate, type LanguageCode } from '../i18n/translations.ts';
+import { miniCopy, miniCopyScript } from './copy.ts';
+import { escapeHtml, gamePage } from './page.ts';
 
-export const reactionHtml = gamePage('反应挑战', '#EF765F', `
-<p class="intro">等颜色变绿，立刻点击。连续完成 5 次，看看你的反应有多快。</p>
+export const reactionHtml = (locale: LanguageCode) => gamePage(locale, translate(locale, 'gameReaction'), '#EF765F', `
+<p class="intro">${escapeHtml(miniCopy(locale, 'reactionIntro'))}</p>
 <section class="panel" id="arena"><div class="orb"><div class="orb-inner">⚡</div></div>
-<div id="status" class="status" role="status">准备好了吗？</div><p class="hint" id="progress">0 / 5 次</p>
-<p id="result" class="result"></p><button id="action" class="primary">开始挑战</button></section>`, `
+<div id="status" class="status" role="status">${escapeHtml(miniCopy(locale, 'reactionReady'))}</div><p class="hint" id="progress">${escapeHtml(miniCopy(locale, 'reactionProgress', { count: 0 }))}</p>
+<p id="result" class="result"></p><button id="action" class="primary">${escapeHtml(miniCopy(locale, 'reactionStart'))}</button></section>`, `
+${miniCopyScript(locale, ['reactionReady','reactionStart','reactionWaiting','reactionBePatient','reactionTapNow','reactionTap','reactionFalseStart','reactionRetryRound','reactionKeepGoing','reactionNext','reactionDone','playAgain','reactionProgress','reactionResult'])}
 const arena=document.getElementById('arena');
 const action=document.getElementById('action');
 const status=document.getElementById('status');
@@ -13,16 +16,16 @@ const result=document.getElementById('result');
 let phase='idle', times=[], readyAt=0, waitTimer=null;
 function render(){
   arena.dataset.phase=phase;
-  progress.textContent=times.length+' / 5 次';
-  if(phase==='idle'){status.textContent='准备好了吗？';action.textContent='开始挑战';result.textContent='';}
-  if(phase==='waiting'){status.textContent='等待变绿…';action.textContent='耐心等待';result.textContent='';}
-  if(phase==='ready'){status.textContent='现在点击！';action.textContent='立即点击';}
-  if(phase==='falseStart'){status.textContent='抢跑了，再试一次';action.textContent='重新开始本轮';}
-  if(phase==='next'){status.textContent='不错，继续下一次';action.textContent='下一次';}
+  progress.textContent=tr('reactionProgress',{count:times.length});
+  if(phase==='idle'){status.textContent=tr('reactionReady');action.textContent=tr('reactionStart');result.textContent='';}
+  if(phase==='waiting'){status.textContent=tr('reactionWaiting');action.textContent=tr('reactionBePatient');result.textContent='';}
+  if(phase==='ready'){status.textContent=tr('reactionTapNow');action.textContent=tr('reactionTap');}
+  if(phase==='falseStart'){status.textContent=tr('reactionFalseStart');action.textContent=tr('reactionRetryRound');}
+  if(phase==='next'){status.textContent=tr('reactionKeepGoing');action.textContent=tr('reactionNext');}
   if(phase==='done'){
     const average=Math.round(times.reduce((sum,value)=>sum+value,0)/times.length);
-    status.textContent='挑战完成！';action.textContent='再玩一局';
-    result.textContent='平均 '+average+' 毫秒 · 最佳 '+Math.min(...times)+' 毫秒';
+    status.textContent=tr('reactionDone');action.textContent=tr('playAgain');
+    result.textContent=tr('reactionResult',{average,best:Math.min(...times)});
   }
 }
 function startRound(){

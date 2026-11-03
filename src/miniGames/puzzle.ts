@@ -1,11 +1,14 @@
-import { gamePage } from './page.ts';
+import { translate, type LanguageCode } from '../i18n/translations.ts';
+import { miniCopy, miniCopyScript } from './copy.ts';
+import { escapeHtml, gamePage } from './page.ts';
 
-export const puzzleHtml = gamePage('数字拼图', '#4DA7A7', `
-<p class="intro">移动空格旁边的数字，让 1 到 8 依次排好。每一局都能解开。</p>
-<section class="panel"><div id="status" class="status" role="status">准备拼图</div>
-<div class="stats"><span class="stat" id="steps">0 步</span><span class="stat" id="time">用时 0 秒</span></div>
-<div id="board" class="puzzle-board" aria-label="数字拼图棋盘"></div>
-<p id="result" class="result"></p><button id="start" class="primary">开始游戏</button></section>`, `
+export const puzzleHtml = (locale: LanguageCode) => gamePage(locale, translate(locale, 'gamePuzzle'), '#4DA7A7', `
+<p class="intro">${escapeHtml(miniCopy(locale, 'puzzleIntro'))}</p>
+<section class="panel"><div id="status" class="status" role="status">${escapeHtml(miniCopy(locale, 'puzzleReady'))}</div>
+<div class="stats"><span class="stat" id="steps">${escapeHtml(miniCopy(locale, 'puzzleSteps', { count: 0 }))}</span><span class="stat" id="time">${escapeHtml(miniCopy(locale, 'elapsed', { count: 0 }))}</span></div>
+<div id="board" class="puzzle-board" aria-label="${escapeHtml(miniCopy(locale, 'puzzleBoard'))}"></div>
+<p id="result" class="result"></p><button id="start" class="primary">${escapeHtml(miniCopy(locale, 'startGame'))}</button></section>`, `
+${miniCopyScript(locale, ['puzzleSteps','elapsed','puzzleEmpty','puzzleTile','puzzleDone','puzzleTap','puzzleResult','playAgain'])}
 const board=document.getElementById('board');
 const status=document.getElementById('status');
 const stepsLabel=document.getElementById('steps');
@@ -26,20 +29,20 @@ function shuffle(){
   }
   if(isSolved(cells)){const empty=cells.indexOf(0),selected=neighbors(empty)[0];[cells[empty],cells[selected]]=[cells[selected],cells[empty]];}
 }
-function updateTime(){if(startedAt)timeLabel.textContent='用时 '+Math.floor((Date.now()-startedAt)/1000)+' 秒';}
+function updateTime(){if(startedAt)timeLabel.textContent=tr('elapsed',{count:Math.floor((Date.now()-startedAt)/1000)});}
 function draw(){
   board.innerHTML='';cells.forEach((value,index)=>{
-    const tile=document.createElement('button');tile.type='button';tile.className='tile'+(value===0?' empty':'');tile.dataset.value=String(value);tile.textContent=value===0?'':String(value);tile.setAttribute('aria-label',value===0?'空格':'数字 '+value);tile.addEventListener('click',()=>move(index));board.appendChild(tile);
+    const tile=document.createElement('button');tile.type='button';tile.className='tile'+(value===0?' empty':'');tile.dataset.value=String(value);tile.textContent=value===0?'':String(value);tile.setAttribute('aria-label',value===0?tr('puzzleEmpty'):tr('puzzleTile',{value}));tile.addEventListener('click',()=>move(index));board.appendChild(tile);
   });
-  stepsLabel.textContent=steps+' 步';
+  stepsLabel.textContent=tr('puzzleSteps',{count:steps});
   updateTime();
 }
 function move(index){
   if(won)return;const empty=cells.indexOf(0);if(!neighbors(empty).includes(index))return;
   [cells[empty],cells[index]]=[cells[index],cells[empty]];steps++;draw();
-  if(isSolved(cells)){won=true;clearInterval(clock);status.textContent='拼图完成！';result.textContent='共用 '+steps+' 步 · '+Math.floor((Date.now()-startedAt)/1000)+' 秒';start.style.display='block';start.textContent='再玩一局';}
+  if(isSolved(cells)){won=true;clearInterval(clock);status.textContent=tr('puzzleDone');result.textContent=tr('puzzleResult',{moves:steps,seconds:Math.floor((Date.now()-startedAt)/1000)});start.style.display='block';start.textContent=tr('playAgain');}
 }
-function newGame(){clearInterval(clock);shuffle();steps=0;won=false;startedAt=Date.now();status.textContent='点击空格旁的数字';result.textContent='';start.style.display='none';draw();clock=setInterval(updateTime,1000);}
+function newGame(){clearInterval(clock);shuffle();steps=0;won=false;startedAt=Date.now();status.textContent=tr('puzzleTap');result.textContent='';start.style.display='none';draw();clock=setInterval(updateTime,1000);}
 start.addEventListener('click',newGame);`, `
 .puzzle-board{width:min(100%,320px);aspect-ratio:1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:7px;padding:8px;background:#c5e5e2;border-radius:20px;margin:7px 0 20px}
 .tile{border:0;border-radius:13px;background:#fffefa;color:#277483;font-size:33px;font-weight:900;box-shadow:0 4px 0 #a5c8c5}.tile.empty{background:#b8dad7;box-shadow:none}

@@ -12,9 +12,11 @@ import { AccountFavorites, type AccountFavoritesState } from './src/favorites/ac
 import { HomeScreen } from './src/home/HomeScreen';
 import { GameHost } from './src/games/GameHost';
 import { getAuthClient } from './src/auth/authClient';
+import { LanguageProvider, useLanguage } from './src/i18n/LanguageProvider';
 
 function JoybitApp() {
   const auth = useAuth();
+  const { t } = useLanguage();
   const favorites = useMemo(() => new FavoritesStore(AsyncStorage), []);
   const [guestIds, setGuestIds] = useState<string[]>([]);
   const [cloudState, setCloudState] = useState<AccountFavoritesState>({ ids: [], status: 'idle' });
@@ -45,7 +47,7 @@ function JoybitApp() {
       setActiveGameId(id); return;
     }
     const session = await auth.requireValidSession();
-    if (!session) { Alert.alert('暂时无法进入游戏', '请联网后重试；如登录已失效，请重新登录。'); return; }
+    if (!session) { Alert.alert(t('nativeNetworkErrorTitle'), t('nativeNetworkErrorBody')); return; }
     setActiveGameId(id);
   }
 
@@ -53,7 +55,7 @@ function JoybitApp() {
     if (!auth.session) { await favorites.toggle(id); return; }
     try {
       await accountFavorites.toggle(id);
-    } catch (error) { Alert.alert('收藏更新失败', error instanceof Error ? error.message : '请重试'); }
+    } catch { Alert.alert(t('favoriteErrorTitle'), t('tryAgain')); }
   }
 
   if (authMode) return <AuthScreen initialMode={authMode} onClose={() => { setAuthMode(null); setPendingGameId(null); }} />;
@@ -62,18 +64,18 @@ function JoybitApp() {
     onSessionRotated={value => {
       if (value.userId !== auth.session?.user.id) { setActiveGameId(null); return; }
       void getAuthClient().auth.setSession({ access_token: value.accessToken, refresh_token: value.refreshToken })
-        .then(({ error }) => { if (error) { setActiveGameId(null); Alert.alert('游戏会话已失效', '请重新登录。'); } });
+        .then(({ error }) => { if (error) { setActiveGameId(null); Alert.alert(t('sessionExpired'), t('signInAgain')); } });
     }} />;
   return <HomeScreen games={GAMES} favoriteIds={auth.session ? cloudState.ids : guestIds}
     onToggleFavorite={id => { void toggleFavorite(id); }} onOpenGame={id => { void openGame(id); }}
-    account={auth.session ? { displayName: auth.session.user.email ?? 'Joybit 玩家' } : null}
+    account={auth.session ? { displayName: auth.session.user.email ?? 'Joybit' } : null}
     favoritesStatus={auth.session ? cloudState.status : 'idle'}
     onRetryFavorites={() => { void accountFavorites.retry(); }}
     onSignIn={() => setAuthMode('signin')}
-    onSignOut={() => { void auth.signOut().catch(error => Alert.alert('退出失败', error.message)); }}
+    onSignOut={() => { void auth.signOut().catch(() => Alert.alert(t('signOutFailed'), t('tryAgain'))); }}
     onDeleteAccount={() => setAuthMode('delete')} />;
 }
 
 export default function App() {
-  return <SafeAreaProvider><StatusBar style="dark" /><AuthProvider><JoybitApp /></AuthProvider></SafeAreaProvider>;
+  return <SafeAreaProvider><StatusBar style="dark" /><LanguageProvider><AuthProvider><JoybitApp /></AuthProvider></LanguageProvider></SafeAreaProvider>;
 }

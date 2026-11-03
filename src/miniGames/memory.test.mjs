@@ -33,10 +33,10 @@ test('memory game completes all pairs and can restart', () => {
   const groups = new Map();
   [...document.querySelectorAll('.card')].forEach(card => groups.set(card.dataset.symbol, [...(groups.get(card.dataset.symbol) ?? []), card]));
   for (const pair of groups.values()) { pair[0].click(); pair[1].click(); }
-  assert.match(document.querySelector('#status').textContent, /全部配对完成/);
-  assert.match(document.querySelector('#result').textContent, /8 次/);
+  assert.match(document.querySelector('#status').textContent, /All pairs found/);
+  assert.match(document.querySelector('#result').textContent, /Moves: 8/);
   document.querySelector('#start').click();
-  assert.equal(document.querySelector('#moves').textContent, '翻牌 0 次');
+  assert.equal(document.querySelector('#moves').textContent, 'Moves: 0');
   assert.equal(document.querySelectorAll('.card').length, 16);
   game.close();
 });

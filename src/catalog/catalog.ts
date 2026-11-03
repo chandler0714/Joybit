@@ -1,3 +1,5 @@
+import { translate, type LanguageCode } from '../i18n/translations.ts';
+
 export type Game = {
   id: string;
   title: string;
@@ -16,7 +18,14 @@ export const GAMES: readonly Game[] = [
     coverKey: 'steady-drop',
     playedCount: null,
   },
-  { id: 'reaction', title: '反应挑战', kind: 'h5', coverKey: 'reaction', offlineHtmlKey: 'reaction', playedCount: null },
-  { id: 'memory', title: '记忆翻牌', kind: 'h5', coverKey: 'memory', offlineHtmlKey: 'memory', playedCount: null },
-  { id: 'puzzle', title: '数字拼图', kind: 'h5', coverKey: 'puzzle', offlineHtmlKey: 'puzzle', playedCount: null },
+  { id: 'reaction', title: 'Reaction Rush', kind: 'h5', coverKey: 'reaction', offlineHtmlKey: 'reaction', playedCount: null },
+  { id: 'memory', title: 'Memory Match', kind: 'h5', coverKey: 'memory', offlineHtmlKey: 'memory', playedCount: null },
+  { id: 'puzzle', title: 'Number Puzzle', kind: 'h5', coverKey: 'puzzle', offlineHtmlKey: 'puzzle', playedCount: null },
 ];
+
+export function localizedGameTitle(game: Game, locale: LanguageCode): string {
+  if (game.id === 'reaction') return translate(locale, 'gameReaction');
+  if (game.id === 'memory') return translate(locale, 'gameMemory');
+  if (game.id === 'puzzle') return translate(locale, 'gamePuzzle');
+  return game.title;
+}

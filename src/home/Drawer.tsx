@@ -1,30 +1,32 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 export type DrawerPanel = 'profile' | 'favorites' | 'settings';
 type Props = { account: { displayName: string } | null; onClose(): void; onSelect(panel: DrawerPanel): void };
 
 export function Drawer({ account, onClose, onSelect }: Props) {
+  const { t } = useLanguage();
   const { top, bottom } = useSafeAreaInsets();
   const position = useRef(new Animated.Value(-340)).current;
   useEffect(() => { Animated.timing(position, { toValue: 0, duration: 220, useNativeDriver: true }).start(); }, [position]);
   return <View style={s.layer}>
-    <Pressable style={s.scrim} onPress={onClose} accessibilityLabel="点击空白处关闭菜单" />
+    <Pressable style={s.scrim} onPress={onClose} accessibilityLabel={t('menuScrim')} />
     <Animated.View testID="drawer-surface" style={[s.drawer, { paddingTop: top + 18, paddingBottom: bottom + 26, transform: [{ translateX: position }] }]}>
       <View style={s.top}><Text style={s.brand}>Joybit<Text style={s.dot}>.</Text></Text>
-        <Pressable onPress={onClose} accessibilityLabel="关闭菜单" style={s.close}><Text style={s.closeText}>×</Text></Pressable>
+        <Pressable onPress={onClose} accessibilityLabel={t('menuClose')} style={s.close}><Text style={s.closeText}>×</Text></Pressable>
       </View>
-      <View style={s.profile}><View style={s.avatar}><Text style={s.avatarText}>J</Text></View><View>
-        <Text style={s.small}>{account ? '欢迎回来' : '你好，玩家'}</Text>
-        <Text style={s.name}>{account?.displayName ?? '访客'}</Text>
+      <View style={s.profile}><View style={s.avatar}><Text style={s.avatarText}>J</Text></View><View style={s.profileCopy}>
+        <Text style={s.small}>{account ? t('welcomeBack') : t('helloPlayer')}</Text>
+        <Text style={s.name} numberOfLines={2}>{account?.displayName ?? t('guest')}</Text>
       </View></View>
       <View style={s.menu}>
-        <MenuItem icon="◉" label="用户信息" onPress={() => onSelect('profile')} />
-        <MenuItem icon="♡" label="收藏" onPress={() => onSelect('favorites')} />
-        <MenuItem icon="⚙" label="设置" onPress={() => onSelect('settings')} />
+        <MenuItem icon="◉" label={t('profileTitle')} onPress={() => onSelect('profile')} />
+        <MenuItem icon="♡" label={t('menuFavorites')} onPress={() => onSelect('favorites')} />
+        <MenuItem icon="⚙" label={t('settingsTitle')} onPress={() => onSelect('settings')} />
       </View>
-      <Text style={s.footer}>JOYBIT · PLAY A LITTLE, SMILE A LOT</Text>
+      <Text style={s.footer}>{t('drawerTagline')}</Text>
     </Animated.View>
   </View>;
 }
@@ -45,6 +47,7 @@ const s = StyleSheet.create({
   profile: { backgroundColor: '#F4F7FA', borderRadius: 22, padding: 18, marginTop: 36, flexDirection: 'row', alignItems: 'center', gap: 14 },
   avatar: { width: 50, height: 50, borderRadius: 16, backgroundColor: '#FFE0A5', alignItems: 'center', justifyContent: 'center' },
   avatarText: { color: '#6B4410', fontSize: 24, fontWeight: '900' },
+  profileCopy: { flex: 1 },
   small: { color: '#8A99A4', fontSize: 11 },
   name: { color: '#1A2C3D', fontSize: 17, fontWeight: '800' },
   menu: { marginTop: 28, gap: 4 },

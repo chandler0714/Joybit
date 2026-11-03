@@ -2,6 +2,10 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
+  plugins: [
+    ...(config.plugins ?? []),
+    ['expo-localization', { supportedLocales: { ios: ['en', 'ja', 'ko', 'fr', 'es', 'ru', 'de'], android: ['en', 'ja', 'ko', 'fr', 'es', 'ru', 'de'] } }],
+  ],
   name: config.name ?? 'Joybit',
   slug: config.slug ?? 'joybit',
   ios: {

@@ -36,9 +36,9 @@ test('number puzzle reports completion and offers a new round', () => {
   document.querySelector('#start').click();
   window.eval('cells=[1,2,3,4,5,6,7,0,8]; draw();');
   document.querySelectorAll('.tile')[8].click();
-  assert.match(document.querySelector('#status').textContent, /拼图完成/);
-  assert.match(document.querySelector('#result').textContent, /1 步/);
+  assert.match(document.querySelector('#status').textContent, /Puzzle complete/);
+  assert.match(document.querySelector('#result').textContent, /Moves: 1/);
   document.querySelector('#start').click();
-  assert.equal(document.querySelector('#steps').textContent, '0 步');
+  assert.equal(document.querySelector('#steps').textContent, 'Moves: 0');
   game.close();
 });

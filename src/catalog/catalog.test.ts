@@ -14,10 +14,11 @@ test('played counts below one thousand stay exact', () => {
 });
 
 test('played counts use floored integer units from one thousand', () => {
-  assert.equal(formatPlayedCount(1000), '1千');
-  assert.equal(formatPlayedCount(9999), '9千');
-  assert.equal(formatPlayedCount(10000), '1万');
-  assert.equal(formatPlayedCount(123456789), '1亿');
+  assert.equal(formatPlayedCount(1000, 'en'), '1K');
+  assert.equal(formatPlayedCount(9999, 'en'), '9K');
+  assert.equal(formatPlayedCount(10000, 'ja'), '1万');
+  assert.equal(formatPlayedCount(123456789, 'ko'), '1억');
+  assert.equal(formatPlayedCount(1500000, 'fr'), '1M');
 });
 
 test('catalog contains the native game and three bundled mini games without invented counts', () => {

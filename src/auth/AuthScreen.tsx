@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from './AuthProvider';
+import { useLanguage } from '../i18n/LanguageProvider';
+import type { TranslationKey } from '../i18n/translations';
 
 type Mode = 'signin' | 'signup' | 'verify' | 'delete';
 
 export function AuthScreen({ onClose, initialMode = 'signin' }: { onClose(): void; initialMode?: Mode }) {
   const auth = useAuth();
+  const { t } = useLanguage();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,38 +23,50 @@ export function AuthScreen({ onClose, initialMode = 'signin' }: { onClose(): voi
       if (mode === 'signin') await auth.signIn(email, password);
       if (mode === 'signup') {
         const entered = await auth.signUp(email, password);
-        if (!entered) { setMode('verify'); setMessage('请输入发送到邮箱的验证码'); }
+        if (!entered) { setMode('verify'); setMessage(t('checkEmailOrLogin')); }
       }
       if (mode === 'verify') await auth.verifyEmail(email, code);
       if (mode === 'delete') {
-        Alert.alert('确认删除账号', '账号和服务器数据将永久删除。', [
-          { text: '取消', style: 'cancel' },
-          { text: '删除', style: 'destructive', onPress: () => { void auth.deleteAccount(password).then(onClose).catch(error => setMessage(error.message)); } },
+        Alert.alert(t('confirmDeleteTitle'), t('confirmDeleteBody'), [
+          { text: t('cancel'), style: 'cancel' },
+          { text: t('delete'), style: 'destructive', onPress: () => { void auth.deleteAccount(password).then(onClose).catch(error => setMessage(authErrorMessage(error, t))); } },
         ]);
       }
-    } catch (error) { setMessage(error instanceof Error ? error.message : '操作失败，请重试'); }
+    } catch (error) { setMessage(authErrorMessage(error, t)); }
     finally { setBusy(false); }
   }
 
-  return <SafeAreaView style={s.screen}>
-    <Pressable accessibilityLabel="返回游戏列表" onPress={onClose} style={s.back}><Text style={s.backText}>‹</Text></Pressable>
+  return <SafeAreaView style={s.screen}><ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+    <Pressable accessibilityLabel={t('backToGames')} onPress={onClose} style={s.back}><Text style={s.backText}>‹</Text></Pressable>
     <Text style={s.brand}>Joybit<Text style={s.dot}>.</Text></Text>
-    <Text style={s.heading}>{mode === 'delete' ? '删除账号' : mode === 'verify' ? '验证邮箱' : mode === 'signup' ? '创建账号' : '欢迎回来'}</Text>
-    <Text style={s.subtitle}>{mode === 'delete' ? '请验证账号后继续' : '一个账号，收藏和游戏都能使用'}</Text>
-    {mode !== 'delete' && <TextInput style={s.input} value={email} onChangeText={setEmail} placeholder="邮箱" keyboardType="email-address" autoCapitalize="none" accessibilityLabel="邮箱" />}
-    {(mode === 'signin' || mode === 'signup' || mode === 'delete') && <TextInput style={s.input} value={password} onChangeText={setPassword} placeholder={mode === 'delete' ? '当前密码' : '密码'} secureTextEntry accessibilityLabel="密码" />}
-    {mode === 'verify' && <TextInput style={s.input} value={code} onChangeText={setCode} placeholder="邮箱验证码" keyboardType="number-pad" accessibilityLabel="邮箱验证码" />}
+    <Text style={s.heading}>{t(mode === 'delete' ? 'deleteAccount' : mode === 'verify' ? 'authTitleVerify' : mode === 'signup' ? 'authTitleSignUp' : 'authTitleSignIn')}</Text>
+    <Text style={s.subtitle}>{t(mode === 'delete' ? 'authDeleteSubtitle' : 'authSubtitle')}</Text>
+    {mode !== 'delete' && <TextInput style={s.input} value={email} onChangeText={setEmail} placeholder={t('email')} keyboardType="email-address" autoCapitalize="none" accessibilityLabel={t('email')} />}
+    {(mode === 'signin' || mode === 'signup' || mode === 'delete') && <TextInput style={s.input} value={password} onChangeText={setPassword} placeholder={t(mode === 'delete' ? 'currentPassword' : 'password')} secureTextEntry accessibilityLabel={t(mode === 'delete' ? 'currentPassword' : 'password')} />}
+    {mode === 'verify' && <TextInput style={s.input} value={code} onChangeText={setCode} placeholder={t('emailCode')} keyboardType="number-pad" accessibilityLabel={t('emailCode')} />}
     {!!message && <Text style={s.message}>{message}</Text>}
-    <Pressable disabled={busy} style={s.primary} onPress={() => void submit()}><Text style={s.primaryText}>{mode === 'delete' ? '删除账号' : mode === 'verify' ? '验证并登录' : mode === 'signup' ? '注册' : '登录'}</Text></Pressable>
+    <Pressable disabled={busy} style={s.primary} onPress={() => void submit()}><Text style={s.primaryText}>{t(mode === 'delete' ? 'deleteAccount' : mode === 'verify' ? 'verifySignIn' : mode === 'signup' ? 'register' : 'signIn')}</Text></Pressable>
     {busy && <ActivityIndicator color="#25767C" />}
-    {mode === 'signin' && <Pressable onPress={() => setMode('signup')} style={s.link}><Text style={s.linkText}>没有账号？注册</Text></Pressable>}
-    {mode === 'signup' && <Pressable onPress={() => setMode('signin')} style={s.link}><Text style={s.linkText}>已有账号？登录</Text></Pressable>}
-    {mode === 'verify' && <Pressable onPress={() => void auth.resendEmail(email).then(() => setMessage('验证码已重新发送')).catch(error => setMessage(error.message))} style={s.link}><Text style={s.linkText}>重发验证码</Text></Pressable>}
-  </SafeAreaView>;
+    {mode === 'signin' && <Pressable onPress={() => setMode('signup')} style={s.link}><Text style={s.linkText}>{t('noAccount')}</Text></Pressable>}
+    {mode === 'signup' && <Pressable onPress={() => setMode('signin')} style={s.link}><Text style={s.linkText}>{t('haveAccount')}</Text></Pressable>}
+    {mode === 'verify' && <Pressable onPress={() => void auth.resendEmail(email).then(() => setMessage(t('codeResent'))).catch(error => setMessage(authErrorMessage(error, t)))} style={s.link}><Text style={s.linkText}>{t('resendCode')}</Text></Pressable>}
+    {mode === 'verify' && <Pressable onPress={() => { setMode('signin'); setMessage(''); setCode(''); }} style={s.link}><Text style={s.linkText}>{t('backToSignIn')}</Text></Pressable>}
+  </ScrollView></SafeAreaView>;
+}
+
+function authErrorMessage(error: unknown, t: (key: TranslationKey) => string): string {
+  const value = error as { code?: string; name?: string } | null;
+  if (value?.name === 'AuthRetryableFetchError') return t('authNetwork');
+  if (value?.code === 'invalid_credentials') return t('authInvalidCredentials');
+  if (value?.code === 'email_not_confirmed') return t('authEmailUnconfirmed');
+  if (value?.code === 'otp_expired' || value?.code === 'invalid_otp') return t('authInvalidCode');
+  if (value?.code?.includes('rate_limit')) return t('authRateLimit');
+  return t('authError');
 }
 
 const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#F3F7F8', paddingHorizontal: 28 },
+  content: { flexGrow: 1, paddingBottom: 28 },
   back: { width: 48, height: 54, justifyContent: 'center' }, backText: { fontSize: 38, color: '#1A2C3D' },
   brand: { fontSize: 28, fontWeight: '900', color: '#1A2C3D', marginTop: 50 }, dot: { color: '#FFB94D' },
   heading: { fontSize: 31, fontWeight: '900', color: '#1A2C3D', marginTop: 34 },

@@ -10,17 +10,17 @@ test('reaction game catches false starts and scores five real taps', () => {
   assert.ok(action);
   action.click();
   action.click();
-  assert.match(document.querySelector('#status').textContent, /抢跑/);
+  assert.match(document.querySelector('#status').textContent, /Too soon/);
   for (let round = 0; round < 5; round++) {
     action.click();
     game.fireNextTimeout();
     game.advance(240 + round * 10);
     action.click();
   }
-  assert.match(document.querySelector('#status').textContent, /完成/);
-  assert.match(document.querySelector('#result').textContent, /平均/);
-  assert.match(document.querySelector('#result').textContent, /最佳/);
+  assert.match(document.querySelector('#status').textContent, /complete/);
+  assert.match(document.querySelector('#result').textContent, /Average/);
+  assert.match(document.querySelector('#result').textContent, /Best/);
   action.click();
-  assert.doesNotMatch(document.querySelector('#result').textContent, /平均/);
+  assert.doesNotMatch(document.querySelector('#result').textContent, /Average/);
   game.close();
 });

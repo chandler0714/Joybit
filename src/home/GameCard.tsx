@@ -1,31 +1,34 @@
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import type { Game } from '../catalog/catalog';
+import { localizedGameTitle, type Game } from '../catalog/catalog';
 import { formatPlayedCount } from '../catalog/formatPlayedCount';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 type Props = { game: Game; favorite: boolean; onOpen(): void; onToggleFavorite(): void };
 
-function Cover({ game }: { game: Game }) {
-  if (game.coverKey === 'steady-drop') return <Image source={require('../../assets/steady-drop.png')} style={s.image} accessibilityLabel={`${game.title} 主图`} />;
+function Cover({ game, title, coverLabel }: { game: Game; title: string; coverLabel: string }) {
+  if (game.coverKey === 'steady-drop') return <Image source={require('../../assets/steady-drop.png')} style={s.image} accessibilityLabel={coverLabel} />;
   const colors = { reaction: '#F47A66', memory: '#7768BD', puzzle: '#54A9AC' };
-  return <View style={[s.art, { backgroundColor: colors[game.coverKey] }]} accessibilityLabel={`${game.title} 主图`}>
+  return <View style={[s.art, { backgroundColor: colors[game.coverKey] }]} accessibilityLabel={coverLabel}>
     <View style={s.artGlow} />
     {game.coverKey === 'reaction' ? <View style={s.target}><View style={s.targetInner} /></View>
       : game.coverKey === 'memory' ? <View style={s.tileRow}><View style={s.memoryTile}><Text style={s.memorySymbol}>✦</Text></View><View style={s.memoryTile}><Text style={s.memorySymbol}>✦</Text></View></View>
         : <View style={s.tileRow}><View style={s.puzzleTile}><Text style={s.puzzleNumber}>1</Text></View><View style={s.puzzleTile}><Text style={s.puzzleNumber}>2</Text></View><View style={s.puzzleTile}><Text style={s.puzzleNumber}>3</Text></View></View>}
-    <Text style={s.artCaption}>JOYBIT · PLAY</Text>
+    <Text style={s.artCaption}>{title}</Text>
   </View>;
 }
 
 export function GameCard({ game, favorite, onOpen, onToggleFavorite }: Props) {
-  const count = formatPlayedCount(game.playedCount);
-  return <Pressable testID={`game-card-${game.id}`} style={s.card} onPress={onOpen} accessibilityLabel={`打开 ${game.title}`}>
-    <View style={s.imageWrap}><Cover game={game} />
-      <Pressable onPress={(event) => { event.stopPropagation(); onToggleFavorite(); }} accessibilityLabel={`${favorite ? '取消收藏' : '收藏'} ${game.title}`} accessibilityRole="button" style={s.favorite}>
+  const { locale, t } = useLanguage();
+  const title = localizedGameTitle(game, locale);
+  const count = formatPlayedCount(game.playedCount, locale);
+  return <Pressable testID={`game-card-${game.id}`} style={s.card} onPress={onOpen} accessibilityLabel={t('openGame', { game: title })}>
+    <View style={s.imageWrap}><Cover game={game} title={t('coverEyebrow')} coverLabel={t('coverImage', { game: title })} />
+      <Pressable onPress={(event) => { event.stopPropagation(); onToggleFavorite(); }} accessibilityLabel={t(favorite ? 'uncollectGame' : 'collectGame', { game: title })} accessibilityRole="button" style={s.favorite}>
         <Text style={[s.heart, favorite && s.heartActive]}>{favorite ? '♥' : '♡'}</Text>
       </Pressable>
     </View>
-    <View style={s.info}><Text style={s.title} numberOfLines={1}>{game.title}</Text>{count !== null && <Text style={s.count}>{count} 人玩过</Text>}</View>
+    <View style={s.info}><Text style={s.title} numberOfLines={2}>{title}</Text>{count !== null && <Text style={s.count}>{t('playedBy', { count })}</Text>}</View>
   </Pressable>;
 }
 
@@ -46,7 +49,7 @@ const s = StyleSheet.create({
   favorite: { position: 'absolute', top: 9, right: 9, width: 34, height: 34, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.93)', alignItems: 'center', justifyContent: 'center' },
   heart: { color: '#546B78', fontSize: 24, lineHeight: 29 },
   heartActive: { color: '#F17872' },
-  info: { minHeight: 62, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 11 },
+  info: { minHeight: 74, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 11 },
   title: { color: '#253B4A', fontSize: 14, fontWeight: '800' },
   count: { color: '#8B9CA7', fontSize: 11, marginTop: 5 },
 });

@@ -1,5 +1,11 @@
-export function gamePage(title: string, accent: string, body: string, script: string, extraCss = ''): string {
-  return `<!doctype html><html lang="zh-CN"><head>
+import { translate, type LanguageCode } from '../i18n/translations.ts';
+
+export function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]!);
+}
+
+export function gamePage(locale: LanguageCode, title: string, accent: string, body: string, script: string, extraCss = ''): string {
+  return `<!doctype html><html lang="${locale}"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:">
 <style>
@@ -12,5 +18,5 @@ button{font:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlig
 .primary{border:0;border-radius:17px;background:var(--accent);color:white;font-size:18px;font-weight:800;min-height:56px;padding:0 25px;width:100%;max-width:300px;box-shadow:0 8px 20px #1b3e4524}
 .result{color:#284252;font-weight:700;text-align:center;min-height:24px}.stats{display:flex;gap:10px;justify-content:center;margin:14px 0}.stat{background:#eaf1f2;border-radius:12px;padding:8px 12px;font-size:12px;color:#59717d}
 ${extraCss}
-</style></head><body><main><div class="eyebrow">JOYBIT · MINI GAME</div><h1>${title}</h1>${body}</main><script>${script}</script></body></html>`;
+</style></head><body><main><div class="eyebrow">${escapeHtml(translate(locale, 'miniGameEyebrow'))}</div><h1>${escapeHtml(title)}</h1>${body}</main><script>${script}</script></body></html>`;
 }

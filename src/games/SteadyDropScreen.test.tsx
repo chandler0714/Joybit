@@ -16,7 +16,7 @@ test('mounts the native scene with Joybit session and offers an exit', async () 
   const view = screen.getByTestId('native-steady-drop');
   const payload = JSON.parse(view.props.sessionJson);
   expect([payload.accessToken, payload.refreshToken, payload.userId]).toEqual(['access', 'refresh', 'u1']);
-  await fireEvent.press(screen.getByLabelText('返回 Joybit'));
+  await fireEvent.press(screen.getByLabelText('Back to Joybit'));
   expect(onExit).toHaveBeenCalledTimes(1);
 });
 

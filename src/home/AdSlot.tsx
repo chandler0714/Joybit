@@ -1,10 +1,12 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 export function AdSlot() {
-  return <View style={s.slot} accessibilityLabel="底部广告位">
-    <Text style={s.badge}>AD</Text><Text style={s.label}>广告位</Text>
-    <Text style={s.detail}>更多快乐，即将呈现</Text>
+  const { t } = useLanguage();
+  return <View style={s.slot} accessibilityLabel={t('bottomAd')}>
+    <Text style={s.badge}>AD</Text><Text style={s.label}>{t('adSlot')}</Text>
+    <Text style={s.detail}>{t('adComing')}</Text>
   </View>;
 }
 

@@ -30,30 +30,30 @@ test('catalog uses two columns and shows four playable games without fake counts
   expect(cardWidth).toBeLessThan(Dimensions.get('window').width * 0.55);
   expect(screen.getAllByTestId(/^game-card-/)).toHaveLength(4);
   expect(screen.getByText('Hexa Landing')).toBeTruthy();
-  expect(screen.getByText('反应挑战')).toBeTruthy();
-  expect(screen.getByText('记忆翻牌')).toBeTruthy();
-  expect(screen.getByText('数字拼图')).toBeTruthy();
+  expect(screen.getByText('Reaction Rush')).toBeTruthy();
+  expect(screen.getByText('Memory Match')).toBeTruthy();
+  expect(screen.getByText('Number Puzzle')).toBeTruthy();
   expect(screen.queryByText(/人玩过/)).toBeNull();
 });
 
 test('card opens its game and exposes a separate favorite button', async () => {
   const { onOpenGame, onToggleFavorite } = await renderHome();
-  await fireEvent.press(screen.getByLabelText('打开 Hexa Landing'));
+  await fireEvent.press(screen.getByLabelText('Open Hexa Landing'));
   expect(onOpenGame).toHaveBeenCalledWith('steady-drop');
-  await fireEvent.press(screen.getByLabelText('收藏 Hexa Landing'));
+  await fireEvent.press(screen.getByLabelText('Favorite Hexa Landing'));
   expect(onToggleFavorite).toHaveBeenCalledWith('steady-drop');
 });
 
 test('drawer hides and restores the bottom ad slot', async () => {
   await renderHome();
-  expect(screen.getByText('广告位')).toBeTruthy();
-  await fireEvent.press(screen.getByLabelText('打开菜单'));
-  expect(screen.getByText('用户信息')).toBeTruthy();
-  expect(screen.getByText('收藏')).toBeTruthy();
-  expect(screen.getByText('设置')).toBeTruthy();
-  expect(screen.queryByText('广告位')).toBeNull();
-  await fireEvent.press(screen.getByLabelText('关闭菜单'));
-  expect(screen.getByText('广告位')).toBeTruthy();
+  expect(screen.getByText('Ad space')).toBeTruthy();
+  await fireEvent.press(screen.getByLabelText('Open menu'));
+  expect(screen.getByText('Account')).toBeTruthy();
+  expect(screen.getByText('Favorites')).toBeTruthy();
+  expect(screen.getByText('Settings')).toBeTruthy();
+  expect(screen.queryByText('Ad space')).toBeNull();
+  await fireEvent.press(screen.getByLabelText('Close menu'));
+  expect(screen.getByText('Ad space')).toBeTruthy();
 });
 
 test('favorites menu shows the saved game and can return to catalog', async () => {
@@ -66,18 +66,18 @@ test('favorites menu shows the saved game and can return to catalog', async () =
       account={null}
     />,
   );
-  await fireEvent.press(screen.getByLabelText('打开菜单'));
-  await fireEvent.press(screen.getByText('收藏'));
-  expect(screen.getByText('我的收藏')).toBeTruthy();
-  expect(screen.getByLabelText('取消收藏 Hexa Landing')).toBeTruthy();
-  await fireEvent.press(screen.getByLabelText('返回游戏列表'));
-  expect(screen.getByText('精选游戏')).toBeTruthy();
+  await fireEvent.press(screen.getByLabelText('Open menu'));
+  await fireEvent.press(screen.getByText('Favorites'));
+  expect(screen.getByText('My favorites')).toBeTruthy();
+  expect(screen.getByLabelText('Remove Hexa Landing from favorites')).toBeTruthy();
+  await fireEvent.press(screen.getByLabelText('Back to games'));
+  expect(screen.getByText('Featured games')).toBeTruthy();
 });
 
 test('signed-in users can retry a failed favorites sync', async () => {
   const onRetryFavorites = jest.fn();
   await renderInSafeArea(<HomeScreen games={GAMES} favoriteIds={[]} onToggleFavorite={jest.fn()} onOpenGame={jest.fn()}
     account={{ displayName: 'player@example.com' }} favoritesStatus="error" onRetryFavorites={onRetryFavorites} />);
-  await fireEvent.press(screen.getByLabelText('重试收藏同步'));
+  await fireEvent.press(screen.getByLabelText('Retry favorites sync'));
   expect(onRetryFavorites).toHaveBeenCalledTimes(1);
 });

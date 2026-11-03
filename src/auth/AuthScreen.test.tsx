@@ -9,13 +9,16 @@ jest.mock('./AuthProvider', () => ({
 
 test('registration offers only email and password, then email verification', async () => {
   await render(<AuthScreen onClose={jest.fn()} />);
-  expect(screen.queryByText('通过 Apple 登录')).toBeNull();
-  await fireEvent.press(screen.getByText('没有账号？注册'));
-  expect(screen.getByLabelText('邮箱')).toBeTruthy();
-  expect(screen.getByLabelText('密码')).toBeTruthy();
-  await fireEvent.changeText(screen.getByLabelText('邮箱'), 'player@example.com');
-  await fireEvent.changeText(screen.getByLabelText('密码'), 'sample-password');
-  await fireEvent.press(screen.getByText('注册'));
+  expect(screen.queryByText('Sign in with Apple')).toBeNull();
+  await fireEvent.press(screen.getByText('No account? Register'));
+  expect(screen.getByLabelText('Email')).toBeTruthy();
+  expect(screen.getByLabelText('Password')).toBeTruthy();
+  await fireEvent.changeText(screen.getByLabelText('Email'), 'player@example.com');
+  await fireEvent.changeText(screen.getByLabelText('Password'), 'sample-password');
+  await fireEvent.press(screen.getByText('Register'));
   expect(mockSignUp).toHaveBeenCalledWith('player@example.com', 'sample-password');
-  expect(screen.getByText('验证邮箱')).toBeTruthy();
+  expect(screen.getByText('Verify email')).toBeTruthy();
+  expect(screen.getByText('Check your email. If you already have an account, return to sign in.')).toBeTruthy();
+  await fireEvent.press(screen.getByText('Back to email sign-in'));
+  expect(screen.getByText('Welcome back')).toBeTruthy();
 });

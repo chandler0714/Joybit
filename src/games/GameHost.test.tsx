@@ -32,18 +32,18 @@ test('opens a bundled game with a cached expired login and no network token in H
   const game: Game = { ...GAMES[0], id: 'reaction', kind: 'h5', offlineHtmlKey: 'reaction' };
   const expired = { ...session, expires_at: 1, access_token: 'private-access-token' };
   await render(<GameHost game={game} session={expired as never} onExit={jest.fn()} onSessionRotated={jest.fn()} />);
-  expect(screen.getByText(/反应挑战/)).toBeTruthy();
+  expect(screen.getAllByText(/Reaction Rush/).length).toBeGreaterThan(0);
   expect(screen.queryByText(/private-access-token/)).toBeNull();
 });
 
 test('requires login before a bundled game mounts', async () => {
   const game: Game = { ...GAMES[0], id: 'reaction', kind: 'h5', offlineHtmlKey: 'reaction' };
   await render(<GameHost game={game} session={null} onExit={jest.fn()} onSessionRotated={jest.fn()} />);
-  expect(screen.getByText('请先登录 Joybit')).toBeTruthy();
+  expect(screen.getByText('Sign in to Joybit first')).toBeTruthy();
 });
 
 test('blocks a missing or expired session before mounting either game', async () => {
   await render(<GameHost game={GAMES[0]} session={{ ...session, expires_at: 1 } as never} onExit={jest.fn()} onSessionRotated={jest.fn()} />);
-  expect(screen.getByText('请先登录 Joybit')).toBeTruthy();
+  expect(screen.getByText('Sign in to Joybit first')).toBeTruthy();
   expect(screen.queryByText('native game')).toBeNull();
 });
