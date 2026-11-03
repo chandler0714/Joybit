@@ -6,6 +6,8 @@ The Joybit shell and all three bundled games support English, Japanese, Korean, 
 
 All four games require a Joybit login. Once signed in, the three bundled mini games can run without a network connection, including from a securely cached local session after a temporary network failure. The bundled WebView pages receive no account tokens and load no remote assets. Hexa Landing still needs online session validation and its backend for lives.
 
+Joybit uses the same Supabase email account as Hexa Landing. Its seven-language account screens support password sign-in, registration with password confirmation and email code, continuation of an unconfirmed registration, a 60-second resend countdown, and code-based password recovery. Recovery verifies the code in a temporary session and adopts it only after the password update succeeds. Joybit still has no Apple sign-in; the standalone Hexa app retains its own login screen and session.
+
 ## Run locally
 
 Use Node.js 24, Xcode 26, an iOS 17+ simulator, and CocoaPods. Install JavaScript packages with `npm ci`.
@@ -42,7 +44,7 @@ The source snapshot is pinned at `4bc3680f62380a7eb63b0142461c75403d13298b` in `
 ## Before release
 
 - Apply `supabase/migrations/20261102_joybit_favorites.sql` to the shared Supabase project. It creates user-owned favorites protected by row-level security. This repository has **not** applied it to production.
-- Joybit's first release uses email registration and password login only. Configure email verification in the shared Supabase project; the `delete-account` Edge Function must remain deployed. Email delivery changes are deferred.
+- Joybit's first release uses email login only. Configure the shared Supabase project's SMTP sender and signup/recovery email templates before release. Both email templates must include an in-app numeric code (`{{ .Token }}`), and a change to them also affects the standalone Hexa app. The `delete-account` Edge Function must remain deployed. Mail delivery has not been verified end to end.
 - Configure Joybit-specific AdMob app/rewarded units using `EXPO_PUBLIC_JOYBIT_ADMOB_APP_ID` and `EXPO_PUBLIC_JOYBIT_REWARDED_AD_UNIT_ID`, then update the existing reward-verification backend to recognize Joybit's unit. The catalog banner is currently a labeled placeholder. The debug game uses Google's test rewarded unit.
 - Connect a real played-count source before showing player counts. Unknown values are intentionally hidden; the formatter displays exact values below 1,000 and floored integer units above that.
 - Port Steady Drop to Android before enabling that catalog item there. The React Native shell and H5 host are shared, but the native game is iOS-only today.
