@@ -10,7 +10,7 @@ export function formatPlayedCount(count: number | null, locale: LanguageCode = '
     return `${Math.floor(count / 100000000)}${units[2]}`;
   }
   const units: Record<Exclude<LanguageCode, 'ja' | 'ko'>, [string, string, string]> = {
-    en: ['K', 'M', 'B'], fr: ['k', 'M', 'Md'], es: ['mil', 'M', 'mil M'], ru: ['тыс.', 'млн', 'млрд'], de: ['Tsd.', 'Mio.', 'Mrd.'],
+    en: ['K', 'M', 'B'], fr: ['k', 'M', 'Md'], es: [' mil', ' M', ' mil M'], ru: [' тыс.', ' млн', ' млрд'], de: [' Tsd.', ' Mio.', ' Mrd.'],
   };
   const labels = units[locale];
   if (count < 1000000) return `${Math.floor(count / 1000)}${labels[0]}`;

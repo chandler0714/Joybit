@@ -27,6 +27,7 @@ export function AuthScreen({ onClose, initialMode = 'signin' }: { onClose(): voi
       }
       if (mode === 'verify') await auth.verifyEmail(email, code);
       if (mode === 'delete') {
+        if (!password) { setMessage(t('authDeletePasswordRequired')); return; }
         Alert.alert(t('confirmDeleteTitle'), t('confirmDeleteBody'), [
           { text: t('cancel'), style: 'cancel' },
           { text: t('delete'), style: 'destructive', onPress: () => { void auth.deleteAccount(password).then(onClose).catch(error => setMessage(authErrorMessage(error, t))); } },
@@ -45,7 +46,7 @@ export function AuthScreen({ onClose, initialMode = 'signin' }: { onClose(): voi
     {(mode === 'signin' || mode === 'signup' || mode === 'delete') && <TextInput style={s.input} value={password} onChangeText={setPassword} placeholder={t(mode === 'delete' ? 'currentPassword' : 'password')} secureTextEntry accessibilityLabel={t(mode === 'delete' ? 'currentPassword' : 'password')} />}
     {mode === 'verify' && <TextInput style={s.input} value={code} onChangeText={setCode} placeholder={t('emailCode')} keyboardType="number-pad" accessibilityLabel={t('emailCode')} />}
     {!!message && <Text style={s.message}>{message}</Text>}
-    <Pressable disabled={busy} style={s.primary} onPress={() => void submit()}><Text style={s.primaryText}>{t(mode === 'delete' ? 'deleteAccount' : mode === 'verify' ? 'verifySignIn' : mode === 'signup' ? 'register' : 'signIn')}</Text></Pressable>
+    <Pressable accessibilityRole="button" disabled={busy} style={s.primary} onPress={() => void submit()}><Text style={s.primaryText}>{t(mode === 'delete' ? 'deleteAccount' : mode === 'verify' ? 'verifySignIn' : mode === 'signup' ? 'register' : 'signIn')}</Text></Pressable>
     {busy && <ActivityIndicator color="#25767C" />}
     {mode === 'signin' && <Pressable onPress={() => setMode('signup')} style={s.link}><Text style={s.linkText}>{t('noAccount')}</Text></Pressable>}
     {mode === 'signup' && <Pressable onPress={() => setMode('signin')} style={s.link}><Text style={s.linkText}>{t('haveAccount')}</Text></Pressable>}
@@ -59,6 +60,7 @@ function authErrorMessage(error: unknown, t: (key: TranslationKey) => string): s
   if (value?.name === 'AuthRetryableFetchError') return t('authNetwork');
   if (value?.code === 'invalid_credentials') return t('authInvalidCredentials');
   if (value?.code === 'email_not_confirmed') return t('authEmailUnconfirmed');
+  if (value?.code === 'weak_password') return t('authWeakPassword');
   if (value?.code === 'otp_expired' || value?.code === 'invalid_otp') return t('authInvalidCode');
   if (value?.code?.includes('rate_limit')) return t('authRateLimit');
   return t('authError');

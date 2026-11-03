@@ -13,7 +13,7 @@ export function SteadyDropScreen({ session, onExit, onSessionRotated }: Props) {
   const { top } = useSafeAreaInsets();
   if (Platform.OS !== 'ios') return <View style={s.fallback}><Text style={s.text}>{t('nativeOnlyIos')}</Text><Pressable onPress={onExit}><Text style={s.link}>{t('backToGames')}</Text></Pressable></View>;
   return <View style={s.screen}>
-    <View testID="native-game-toolbar" style={[s.toolbar, { height: 52 + top, paddingTop: top }]}><Pressable accessibilityLabel={t('backJoybit')} onPress={onExit} style={s.backButton}><Text style={s.backText}>‹  Joybit</Text></Pressable></View>
+    <View testID="native-game-toolbar" style={[s.toolbar, { height: 52 + top, paddingTop: top }]}><Pressable accessibilityLabel={t('backJoybit')} onPress={onExit} style={s.backButton}><Text style={s.backText}>‹  {t('backJoybit')}</Text></Pressable></View>
     <SteadyDropNativeView style={s.game}
       sessionJson={JSON.stringify({ accessToken: session.access_token, refreshToken: session.refresh_token, userId: session.user.id, email: session.user.email ?? '' })}
       onExit={onExit}

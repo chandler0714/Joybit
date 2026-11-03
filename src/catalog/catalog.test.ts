@@ -19,6 +19,9 @@ test('played counts use floored integer units from one thousand', () => {
   assert.equal(formatPlayedCount(10000, 'ja'), '1万');
   assert.equal(formatPlayedCount(123456789, 'ko'), '1억');
   assert.equal(formatPlayedCount(1500000, 'fr'), '1M');
+  assert.equal(formatPlayedCount(1000, 'es'), '1 mil');
+  assert.equal(formatPlayedCount(1000, 'ru'), '1 тыс.');
+  assert.equal(formatPlayedCount(1000, 'de'), '1 Tsd.');
 });
 
 test('catalog contains the native game and three bundled mini games without invented counts', () => {
