@@ -3,11 +3,16 @@ export type LevelGameId = (typeof LEVEL_GAME_IDS)[number];
 
 type Storage = { getItem(key: string): Promise<string | null>; setItem(key: string, value: string): Promise<unknown> };
 const keyFor = (userId: string, game: LevelGameId) => `joybit.levels.v1.${encodeURIComponent(userId)}.${game}`;
+export const LEVEL_GENERATOR_VERSION = 1;
 
 export async function loadUnlocked(storage: Storage, userId: string, game: LevelGameId): Promise<number> {
   try {
-    const value = Number(await storage.getItem(keyFor(userId, game)));
-    return Number.isSafeInteger(value) && value >= 1 ? value : 1;
+    const raw = await storage.getItem(keyFor(userId, game));
+    const saved: unknown = raw ? JSON.parse(raw) : null;
+    const value = typeof saved === 'number' ? saved :
+      saved && typeof saved === 'object' && (saved as Record<string, unknown>).generatorVersion === LEVEL_GENERATOR_VERSION
+        ? (saved as Record<string, unknown>).unlocked : null;
+    return typeof value === 'number' && Number.isSafeInteger(value) && value >= 1 ? value : 1;
   } catch { return 1; }
 }
 
@@ -15,7 +20,7 @@ export async function recordCompletion(storage: Storage, userId: string, game: L
   const current = await loadUnlocked(storage, userId, game);
   if (!Number.isSafeInteger(level) || level < 1 || level > current) return current;
   const next = Math.max(current, level + 1);
-  await storage.setItem(keyFor(userId, game), String(next));
+  await storage.setItem(keyFor(userId, game), JSON.stringify({ generatorVersion: LEVEL_GENERATOR_VERSION, unlocked: next }));
   return next;
 }
 

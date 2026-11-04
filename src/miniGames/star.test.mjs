@@ -45,3 +45,25 @@ test('Star Trail plays, pauses, restarts, and emits one completion', () => {
   assert.deepEqual(messages, [{ type: 'levelComplete', game: 'star', level: 1 }]);
   game.close();
 });
+
+test('hiding the document auto-pauses without advancing the orb', () => {
+  const game = mountGame(starHtml('en', 1));
+  game.document.querySelector('#launch').click();
+  Object.defineProperty(game.document, 'hidden', { configurable: true, value: true });
+  game.document.dispatchEvent(new game.window.Event('visibilitychange'));
+  assert.throws(() => game.fireNextTimeout(), /No pending timeout/);
+  assert.match(game.document.querySelector('#status').textContent, /Paused/);
+  Object.defineProperty(game.document, 'hidden', { configurable: true, value: false });
+  game.document.querySelector('#pause').click();
+  game.fireNextTimeout();
+  assert.equal(game.document.querySelector('#collected').textContent, '1 / 1');
+  game.close();
+});
+
+test('leaving the page clears an active Star Trail timer', () => {
+  const game = mountGame(starHtml('en', 1));
+  game.document.querySelector('#launch').click();
+  game.window.dispatchEvent(new game.window.Event('pagehide'));
+  assert.throws(() => game.fireNextTimeout(), /No pending timeout/);
+  game.close();
+});

@@ -67,6 +67,26 @@ test('Hidden Nook timer stops while paused and can time out', () => {
   game.close();
 });
 
+test('Hidden Nook auto-pauses when document becomes hidden', () => {
+  const game = mountGame(hiddenHtml('en', 100));
+  const { document, window } = game;
+  document.querySelector('#start').click();
+  const beforeHide = document.querySelector('#time').textContent;
+  Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+  document.dispatchEvent(new window.Event('visibilitychange'));
+  game.tickIntervals();
+  assert.equal(document.querySelector('#time').textContent, beforeHide);
+  assert.equal(document.querySelector('#pause').textContent, 'Resume');
+  assert.equal(document.querySelector('.object').disabled, true);
+  Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+  document.dispatchEvent(new window.Event('visibilitychange'));
+  assert.equal(document.querySelector('#time').textContent, beforeHide);
+  document.querySelector('#pause').click();
+  game.tickIntervals();
+  assert.equal(Number(document.querySelector('#time').textContent), Number(beforeHide) - 1);
+  game.close();
+});
+
 test('all seven locales render key controls', () => {
   for (const locale of ['en', 'ja', 'ko', 'fr', 'es', 'ru', 'de']) {
     const html = hiddenHtml(locale, 101);

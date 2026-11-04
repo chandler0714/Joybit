@@ -15,6 +15,7 @@ test('unlock progress belongs to the account and game and never moves backwards'
   assert.equal(await loadUnlocked(store, 'bob', 'hex'), 1);
   assert.equal(await loadUnlocked(store, 'alice', 'star'), 1);
   assert.equal(await loadUnlocked(store, 'alice', 'hex'), 2);
+  assert.deepEqual(JSON.parse(await store.getItem('joybit.levels.v1.alice.hex')), { generatorVersion: 1, unlocked: 2 });
 });
 
 test('completion bridge accepts only the currently played numbered level', () => {

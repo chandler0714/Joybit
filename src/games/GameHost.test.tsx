@@ -59,7 +59,7 @@ test('a completed level unlocks the next level only for the signed-in account', 
   await act(async () => {
     fireEvent(screen.getByTestId('mock-webview'), 'message', { nativeEvent: { data: JSON.stringify({ type: 'levelComplete', game: 'hex', level: 1 }) } });
   });
-  await waitFor(async () => expect(await AsyncStorage.getItem('joybit.levels.v1.u1.hex')).toBe('2'));
+  await waitFor(async () => expect(JSON.parse((await AsyncStorage.getItem('joybit.levels.v1.u1.hex')) ?? 'null')).toEqual({ generatorVersion: 1, unlocked: 2 }));
   await fireEvent.press(screen.getByLabelText('Next level'));
   expect(screen.getByText('2')).toBeTruthy();
 });

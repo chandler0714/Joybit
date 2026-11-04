@@ -111,8 +111,11 @@ function clear(){if(timer!==null){clearTimeout(timer);timer=null;}}
 function finish(){clear();pause.disabled=true;launch.disabled=true;const won=found.size===level.stars.length&&lane===level.exit;phase=won?'won':'lost';status.textContent=copy[won?'won':'missed'];if(won)window.ReactNativeWebView?.postMessage(JSON.stringify({type:'levelComplete',game:'star',level:level.number}));}
 function step(){timer=null;if(phase!=='running')return;lane=advanceStar(lane,directions[row]);level.stars.forEach((star,index)=>{if(star.row===row&&star.lane===lane)found.add(index);});row++;draw();if(row===level.gates.length)finish();else schedule();}
 function schedule(){timer=setTimeout(step,Math.max(310,630-row*45));}
+function autoPause(){if(phase!=='running')return;phase='paused';clear();status.textContent=copy.paused;pause.textContent=copy.resume;}
 launch.addEventListener('click',()=>{if(phase!=='ready')return;phase='running';status.textContent=copy.running;launch.disabled=true;pause.disabled=false;schedule();});
-pause.addEventListener('click',()=>{if(phase==='running'){phase='paused';clear();status.textContent=copy.paused;pause.textContent=copy.resume;}else if(phase==='paused'){phase='running';status.textContent=copy.running;pause.textContent=copy.pause;schedule();}});
+pause.addEventListener('click',()=>{if(phase==='running'){autoPause();}else if(phase==='paused'){phase='running';status.textContent=copy.running;pause.textContent=copy.pause;schedule();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)autoPause();});
+window.addEventListener('pagehide',autoPause);
 restart.addEventListener('click',()=>{clear();directions=level.gates.map(()=>1);lane=level.start;row=0;found=new Set();phase='ready';status.textContent=copy.ready;launch.disabled=false;pause.disabled=true;pause.textContent=copy.pause;draw();});
 draw();`, `
 .star-top{display:flex;justify-content:space-between;color:#605887;font-weight:800;font-size:14px;margin:0 2px 11px}.star-top span{background:#ede7f7;padding:8px 13px;border-radius:12px}
