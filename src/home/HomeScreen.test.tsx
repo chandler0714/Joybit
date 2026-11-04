@@ -23,12 +23,12 @@ async function renderHome() {
   return { onToggleFavorite, onOpenGame };
 }
 
-test('catalog uses two columns and shows four playable games without fake counts', async () => {
+test('catalog uses two columns and shows nine playable games without fake counts', async () => {
   await renderHome();
   const cardWidth = screen.getByTestId('game-card-steady-drop').parent?.props.style.width as number;
   expect(cardWidth).toBeGreaterThan(Dimensions.get('window').width * 0.4);
   expect(cardWidth).toBeLessThan(Dimensions.get('window').width * 0.55);
-  expect(screen.getAllByTestId(/^game-card-/)).toHaveLength(4);
+  expect(screen.getAllByTestId(/^game-card-/)).toHaveLength(9);
   expect(screen.getByText('Hexa Landing')).toBeTruthy();
   expect(screen.getByText('Reaction Rush')).toBeTruthy();
   expect(screen.getByText('Memory Match')).toBeTruthy();

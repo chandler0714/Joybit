@@ -1,6 +1,12 @@
-# Joybit verification — updated 2026-11-03
+# Joybit verification — updated 2026-11-04
 
-## Verified locally
+## Five new numbered games — 2026-11-04
+
+Hex Garden, Star Trail, Lane Glow, Little Corner Kitchen, and Hidden Nook are now bundled offline games in the catalog. Their generators produce repeatable numbered content through level 100 and beyond. Focused tests check levels 1–100 plus higher examples, puzzle routes or feasible orders, pause/retry, and completion messages. Joybit stores highest unlocked levels per account and game on the device; the WebView receives no account token. All five have seven-language game titles and key controls.
+
+`npm test` passed: 51 unit/DOM tests and 50 React Native UI tests across 14 suites. `npm run typecheck` passed. A local browser preview loaded all five game screens and showed the portrait layouts; this was a visual inspection of generated HTML at a desktop browser viewport, not an iOS simulator or signed-device test. The new games have not been built or played on an iPhone in this round. The earlier iOS build evidence below applies to the previous four-game baseline.
+
+## Previous four-game baseline verified locally on 2026-11-03
 
 | Area | Result |
 | --- | --- |

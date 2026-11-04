@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GameHost } from './GameHost';
 import { GAMES, type Game } from '../catalog/catalog';
 
@@ -9,7 +10,7 @@ jest.mock('./SteadyDropScreen', () => {
 });
 jest.mock('react-native-webview', () => {
   const { Text } = require('react-native');
-  return { WebView: ({ source }: { source: { uri?: string; html?: string } }) => <Text>{source.uri ?? source.html}</Text> };
+  return { WebView: ({ source, onMessage }: { source: { uri?: string; html?: string }; onMessage?: unknown }) => <Text testID="mock-webview" onMessage={onMessage}>{source.uri ?? source.html}</Text> };
 });
 
 const session = { access_token: 'token', refresh_token: 'refresh', expires_at: 2000000000, user: { id: 'u1', email: 'a@b.co' } };
@@ -46,4 +47,19 @@ test('blocks a missing or expired session before mounting either game', async ()
   await render(<GameHost game={GAMES[0]} session={{ ...session, expires_at: 1 } as never} onExit={jest.fn()} onSessionRotated={jest.fn()} />);
   expect(screen.getByText('Sign in to Joybit first')).toBeTruthy();
   expect(screen.queryByText('native game')).toBeNull();
+});
+
+test('a completed level unlocks the next level only for the signed-in account', async () => {
+  await AsyncStorage.clear();
+  const game = GAMES.find(item => item.id === 'hex')!;
+  await render(<GameHost game={game} session={session as never} onExit={jest.fn()} onSessionRotated={jest.fn()} />);
+  await waitFor(() => expect(screen.getByTestId('mock-webview')).toBeTruthy());
+  await fireEvent.press(screen.getByLabelText('Next level'));
+  expect(screen.getByText('1')).toBeTruthy();
+  await act(async () => {
+    fireEvent(screen.getByTestId('mock-webview'), 'message', { nativeEvent: { data: JSON.stringify({ type: 'levelComplete', game: 'hex', level: 1 }) } });
+  });
+  await waitFor(async () => expect(await AsyncStorage.getItem('joybit.levels.v1.u1.hex')).toBe('2'));
+  await fireEvent.press(screen.getByLabelText('Next level'));
+  expect(screen.getByText('2')).toBeTruthy();
 });

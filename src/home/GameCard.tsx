@@ -8,12 +8,14 @@ type Props = { game: Game; favorite: boolean; onOpen(): void; onToggleFavorite()
 
 function Cover({ game, title, coverLabel }: { game: Game; title: string; coverLabel: string }) {
   if (game.coverKey === 'steady-drop') return <Image source={require('../../assets/steady-drop.png')} style={s.image} accessibilityLabel={coverLabel} />;
-  const colors = { reaction: '#F47A66', memory: '#7768BD', puzzle: '#54A9AC' };
+  const colors = { reaction: '#F47A66', memory: '#7768BD', puzzle: '#54A9AC', hex: '#58519B', star: '#75B0CF', lane: '#25286B', kitchen: '#DD604B', hidden: '#9270AA' };
+  const symbols = { hex: '⬡', star: '✦', lane: '●', kitchen: '◒', hidden: '⌕' };
   return <View style={[s.art, { backgroundColor: colors[game.coverKey] }]} accessibilityLabel={coverLabel}>
     <View style={s.artGlow} />
     {game.coverKey === 'reaction' ? <View style={s.target}><View style={s.targetInner} /></View>
       : game.coverKey === 'memory' ? <View style={s.tileRow}><View style={s.memoryTile}><Text style={s.memorySymbol}>✦</Text></View><View style={s.memoryTile}><Text style={s.memorySymbol}>✦</Text></View></View>
-        : <View style={s.tileRow}><View style={s.puzzleTile}><Text style={s.puzzleNumber}>1</Text></View><View style={s.puzzleTile}><Text style={s.puzzleNumber}>2</Text></View><View style={s.puzzleTile}><Text style={s.puzzleNumber}>3</Text></View></View>}
+        : game.coverKey === 'puzzle' ? <View style={s.tileRow}><View style={s.puzzleTile}><Text style={s.puzzleNumber}>1</Text></View><View style={s.puzzleTile}><Text style={s.puzzleNumber}>2</Text></View><View style={s.puzzleTile}><Text style={s.puzzleNumber}>3</Text></View></View>
+          : <Text style={s.newSymbol}>{symbols[game.coverKey]}</Text>}
     <Text style={s.artCaption}>{title}</Text>
   </View>;
 }
@@ -45,6 +47,7 @@ const s = StyleSheet.create({
   memorySymbol: { color: '#E07D92', fontSize: 38, fontWeight: '800' },
   puzzleTile: { width: 37, height: 42, borderRadius: 9, backgroundColor: '#EDFAF2', alignItems: 'center', justifyContent: 'center' },
   puzzleNumber: { color: '#25717D', fontSize: 24, fontWeight: '900' },
+  newSymbol: { color: '#FFF5DB', fontSize: 82, fontWeight: '800', textShadowColor: '#161A3B55', textShadowOffset: { width: 0, height: 7 }, textShadowRadius: 14 },
   artCaption: { position: 'absolute', bottom: 12, left: 14, color: 'rgba(255,255,255,0.9)', fontSize: 9, fontWeight: '800', letterSpacing: 2 },
   favorite: { position: 'absolute', top: 9, right: 9, width: 34, height: 34, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.93)', alignItems: 'center', justifyContent: 'center' },
   heart: { color: '#546B78', fontSize: 24, lineHeight: 29 },
