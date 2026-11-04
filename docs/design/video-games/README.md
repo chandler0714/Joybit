@@ -18,3 +18,4 @@
 
 - [列表中段：六角花园、星星轨道、滚球与厨房](ios-catalog-middle.png)
 - [列表底部：滚球、厨房与寻物小屋](ios-catalog-bottom.png)
+- [星星轨道第一关通关画面](ios-star-trail-complete.png)
