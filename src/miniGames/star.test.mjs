@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { generateStarLevel, routeStarLevel, solveStarLevel, starHtml } from './star.ts';
+import { advanceStar, generateStarLevel, routeStarLevel, solveStarLevel, starHtml } from './star.ts';
 import { mountGame } from './testHarness.mjs';
 
 test('numbered Star Trail boards replay exactly and stay solvable at bounded size', () => {
@@ -44,6 +44,25 @@ test('Star Trail plays, pauses, restarts, and emits one completion', () => {
   assert.equal(document.querySelector('#collected').textContent, `0 / ${level.stars.length}`);
   assert.deepEqual(messages, [{ type: 'levelComplete', game: 'star', level: 1 }]);
   game.close();
+});
+
+test('WebView movement does not depend on Hermes function source text', () => {
+  const previous = Object.getOwnPropertyDescriptor(advanceStar, 'toString');
+  Object.defineProperty(advanceStar, 'toString', {
+    configurable: true,
+    value: () => 'function advanceStar(lane, direction) { [bytecode] }',
+  });
+  let game;
+  try {
+    game = mountGame(starHtml('en', 1));
+    game.document.querySelector('#launch').click();
+    game.fireNextTimeout();
+    assert.equal(game.document.querySelector('#collected').textContent, '1 / 1');
+  } finally {
+    game?.close();
+    if (previous) Object.defineProperty(advanceStar, 'toString', previous);
+    else delete advanceStar.toString;
+  }
 });
 
 test('hiding the document auto-pauses without advancing the orb', () => {

@@ -91,7 +91,8 @@ export function starHtml(locale: LanguageCode, level = 1): string {
 <p id="status" class="status" role="status">${escapeHtml(t('ready'))}</p>
 <div class="star-actions"><button id="launch" class="primary">${escapeHtml(t('launch'))}</button><button id="pause" class="star-small" disabled>${escapeHtml(t('pause'))}</button><button id="restart" class="star-small">${escapeHtml(t('restart'))}</button></div>
 </section>`, `
-const level=${data}; const copy=${words}; const advanceStar=${advanceStar.toString()};
+const level=${data}; const copy=${words};
+const advanceStar=(lane,direction)=>Math.max(0,Math.min(3,lane+direction));
 const svg=document.getElementById('sky'),controls=document.getElementById('gate-controls');
 const status=document.getElementById('status'),collected=document.getElementById('collected');
 const launch=document.getElementById('launch'),pause=document.getElementById('pause'),restart=document.getElementById('restart');
