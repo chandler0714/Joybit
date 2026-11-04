@@ -1,10 +1,16 @@
-# Joybit verification — updated 2026-11-04
+# Joybit verification — updated 2026-11-05
+
+## Five-game iOS simulator build and catalog — 2026-11-05
+
+Expo prebuild and CocoaPods installation completed with Xcode 26.6. The current five-game app built for the iPhone 17 / iOS 26.4 simulator using `CODE_SIGNING_ALLOWED=NO` (`** BUILD SUCCEEDED **`), then `simctl install` and `simctl launch` succeeded. With temporary placeholder Supabase public values in the Metro process, the guest catalog rendered all nine entries. The five new entries appeared in the scrolling grid with their titles and artwork; [middle](design/video-games/ios-catalog-middle.png) and [bottom](design/video-games/ios-catalog-bottom.png) simulator screenshots record the layout. Tapping Hex Garden as a guest opened the email sign-in screen, and its back control returned to the catalog.
+
+This simulator run verifies the native build, catalog display, and guest route. The checkout has no valid Supabase public URL or publishable key, so authenticated game screens, WebView play, progress persistence, and completion handling were not exercised on iOS. The placeholder values were process-local and were not saved to the repository. The simulator build was unsigned; secure login and Keychain behavior require a signed build with a working test account.
 
 ## Five new numbered games — 2026-11-04
 
 Hex Garden, Star Trail, Lane Glow, Little Corner Kitchen, and Hidden Nook are now bundled offline games in the catalog. Their generators produce repeatable numbered content through level 100 and beyond. Focused tests check levels 1–100 plus higher examples, puzzle routes or feasible orders, pause/retry, and completion messages. Joybit stores highest unlocked levels per account and game on the device; the WebView receives no account token. All five have seven-language game titles and key controls.
 
-`npm test` passed: 54 unit/DOM tests and 50 React Native UI tests across 14 suites. `npm run typecheck` and `git diff --check` passed. `EXPO_NO_TELEMETRY=1 npx expo export --platform ios --output-dir /tmp/joybit-five-games-export` bundled 726 modules successfully. Regression tests cover background auto-pause for Star Trail and Hidden Nook. A local browser preview loaded all five game screens and showed the portrait layouts, including a 390×844 viewport check of the Star Trail controls; this was an HTML browser inspection, not an iOS simulator or signed-device test. The new games have not been built or played on an iPhone in this round. The earlier iOS build evidence below applies to the previous four-game baseline.
+`npm test` passed: 54 unit/DOM tests and 50 React Native UI tests across 14 suites. `npm run typecheck` and `git diff --check` passed. `EXPO_NO_TELEMETRY=1 npx expo export --platform ios --output-dir /tmp/joybit-five-games-export` bundled 726 modules successfully. Regression tests cover background auto-pause for Star Trail and Hidden Nook. A local browser preview loaded all five game screens and showed the portrait layouts, including a 390×844 viewport check of the Star Trail controls. The subsequent iOS simulator build and guest catalog inspection are recorded above; these browser checks are not evidence of iOS gameplay.
 
 ## Previous four-game baseline verified locally on 2026-11-03
 
