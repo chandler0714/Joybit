@@ -43,7 +43,7 @@ The source snapshot is pinned at `4bc3680f62380a7eb63b0142461c75403d13298b` in `
 
 ## Before release
 
-- Apply `supabase/migrations/20261102_joybit_favorites.sql` to the shared Supabase project. It creates user-owned favorites protected by row-level security. This repository has **not** applied it to production.
+- Apply `supabase/migrations/20261102_joybit_favorites.sql` to the shared Supabase project with a database administrator account. It creates user-owned favorites protected by row-level security. The public publishable key cannot create the table. The configured project currently returns `PGRST205` for `public.joybit_favorites`, so the migration has **not** been applied; after applying it, reopen Joybit and tap the favorites-sync retry banner.
 - Joybit's first release uses email login only. Configure the shared Supabase project's SMTP sender and signup/recovery email templates before release. Both email templates must include an in-app numeric code (`{{ .Token }}`), and a change to them also affects the standalone Hexa app. The `delete-account` Edge Function must remain deployed. Mail delivery has not been verified end to end.
 - Configure Joybit-specific AdMob app/rewarded units using `EXPO_PUBLIC_JOYBIT_ADMOB_APP_ID` and `EXPO_PUBLIC_JOYBIT_REWARDED_AD_UNIT_ID`, then update the existing reward-verification backend to recognize Joybit's unit. The catalog banner is currently a labeled placeholder. The debug game uses Google's test rewarded unit.
 - Connect a real played-count source before showing player counts. Unknown values are intentionally hidden; the formatter displays exact values below 1,000 and floored integer units above that.
