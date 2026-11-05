@@ -68,14 +68,17 @@ test('all seven locales render key controls', () => {
   }
 });
 
-test('only the glowing target line earns a clear', () => {
+test('a complete line clears along each of the three hex axes', () => {
   const game = mountGame(hexHtml('en', 1));
   const wave = game.window.hexGame.generate(1).waves[0];
-  const other = wave.cells.filter(c => c.q === 0).map(c => `${c.q},${c.r}`);
-  const alternative = other.every(id => wave.line.includes(id)) ? wave.cells.filter(c => c.r === 0).map(c => `${c.q},${c.r}`) : other;
-  const [last, ...board] = alternative;
-  const [q, r] = last.split(',').map(Number);
-  const result = game.window.hexGame.place(wave, board, [{q:0,r:0}], {q,r});
-  assert.equal(result.cleared, 0);
+  for (const line of [wave.cells.filter(c => c.q === 0), wave.cells.filter(c => c.r === 0), wave.cells.filter(c => c.q + c.r === 0)]) {
+    const [last, ...rest] = line;
+    const board = rest.map(c => `${c.q},${c.r}`);
+    const incomplete = game.window.hexGame.place(wave, board.slice(1), [{q:0,r:0}], last);
+    assert.equal(incomplete.cleared, 0);
+    const result = game.window.hexGame.place(wave, board, [{q:0,r:0}], last);
+    assert.equal(result.cleared, 1);
+    assert.ok(line.every(c => !result.board.includes(`${c.q},${c.r}`)));
+  }
   game.close();
 });

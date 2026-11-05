@@ -80,3 +80,23 @@ test('pause freezes progress and restart returns to the same level', () => {
   assert.match(document.querySelector('#progress').textContent, /0/);
   game.close();
 });
+
+test('dragging across the road steers the runner continuously', () => {
+  const game = mountGame(laneHtml('en', 1));
+  const { document, window } = game;
+  document.querySelector('#start').click();
+  const track = document.querySelector('#track');
+  track.getBoundingClientRect = () => ({left: 0, width: 300});
+  const steer = x => {
+    const event = new window.Event('touchmove', {bubbles: true});
+    Object.defineProperty(event, 'changedTouches', {value: [{clientX: x}]});
+    track.dispatchEvent(event);
+  };
+  steer(250);
+  assert.equal(document.querySelector('.runner').style.left, '83.333%');
+  assert.equal(document.querySelector('#right').disabled, true);
+  steer(50);
+  assert.equal(document.querySelector('.runner').style.left, '16.667%');
+  assert.equal(document.querySelector('#left').disabled, true);
+  game.close();
+});
