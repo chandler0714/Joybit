@@ -79,12 +79,12 @@ export function kitchenHtml(locale: LanguageCode, level = 1): string {
 <section class="panel kitchen-panel">
   <div class="kitchen-top"><span id="level-label"></span><span class="clock-wrap">◷ <span id="clock"></span>s</span><span id="done"></span></div>
   <div id="status" class="status" role="status">${escapeHtml(words.ready)}</div>
+  <div class="kitchen-controls"><button id="start" class="primary">${escapeHtml(words.start)}</button><button id="pause">${escapeHtml(words.pause)}</button><button id="restart">${escapeHtml(words.retry)}</button></div>
   <div class="counter-art" aria-hidden="true"><div class="tile-wall"></div><div class="shelf"><i></i><i></i><i></i></div><div class="plate"><div class="plate-inner"></div></div><div class="counter-front"></div></div>
   <h2>${escapeHtml(words.tickets)}</h2><div id="orders" class="orders"></div>
   <h2>${escapeHtml(words.steps)} <span id="step-progress"></span></h2><div id="recipe" class="recipe"></div>
   <h2>${escapeHtml(words.actions)}</h2><div id="actions" class="actions"></div>
   <button id="deliver" class="primary deliver">${escapeHtml(words.deliver)}</button>
-  <div class="kitchen-controls"><button id="start" class="primary">${escapeHtml(words.start)}</button><button id="pause">${escapeHtml(words.pause)}</button><button id="restart">${escapeHtml(words.retry)}</button></div>
 </section>`, `
 const words=${JSON.stringify(words).replace(/</g, '\\u003c')};
 const config=${JSON.stringify(config)};
@@ -133,5 +133,5 @@ window.addEventListener('pagehide',clearClock);render();`, `
 .orders{display:flex;gap:8px;min-height:70px}.ticket{flex:1;min-width:0;min-height:70px;border:2px dashed #cfad8e;border-radius:12px;background:#fffdf4;color:#714938;padding:8px;display:flex;flex-direction:column;align-items:flex-start;text-align:left}.ticket.selected{border:2px solid #da7151;background:#fff2df}.ticket strong{font-size:12px;line-height:1.2}.ticket-num,.ticket-count{font-size:10px;color:#9d7361}.ticket:disabled{opacity:.7}
 .recipe{display:flex;flex-wrap:wrap;gap:6px;min-height:36px}.recipe-chip{padding:7px 8px;border-radius:9px;background:#f5e8dc;color:#765b4c;font-size:12px;font-weight:700}.recipe-chip.next-step{outline:2px solid #d6764a}.recipe-chip.checked{background:#d7eac8;color:#43654a}
 .actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.action{min-height:58px;border:1px solid #e3c8b3;border-radius:13px;background:#fff;color:#6d4636;font-size:11px;font-weight:800;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;padding:4px}.action:disabled{opacity:.48}.action-mark{width:24px;height:24px;border-radius:50%;background:#d9a86b;border:3px solid #f1d3a2;box-shadow:inset 0 0 0 2px #ffffff8c}.action-cheese .action-mark,.action-egg .action-mark{background:#f2cf58}.action-lettuce .action-mark,.action-mix .action-mark{background:#82ad68}.action-tomato .action-mark,.action-grill .action-mark{background:#d77858}.action-water .action-mark,.action-steam .action-mark{background:#8bc3cd}.action-mushroom .action-mark,.action-simmer .action-mark{background:#a98568}.action-rice .action-mark,.action-dough .action-mark{background:#e8e0c6}.action-stir .action-mark{background:#bd7b53}
-.deliver{margin:14px auto 0;min-height:48px;font-size:15px}.deliver:disabled{opacity:.48}.kitchen-controls{display:flex;gap:8px;justify-content:center;margin-top:9px}.kitchen-controls .primary{min-height:49px;font-size:16px}.kitchen-controls button:not(.primary){min-height:44px;padding:0 15px;border:1px solid #d4af99;border-radius:12px;background:#fff;color:#915b46;font-weight:800}[hidden]{display:none!important}`);
+.deliver{margin:14px auto 0;min-height:48px;font-size:15px}.deliver:disabled{opacity:.48}.kitchen-controls{position:sticky;top:0;z-index:2;align-self:stretch;display:flex;gap:8px;justify-content:center;margin:4px 0 10px;padding:5px 0 8px;background:#fffaf4}.kitchen-controls .primary{min-height:49px;font-size:16px}.kitchen-controls button:not(.primary){min-height:44px;padding:0 15px;border:1px solid #d4af99;border-radius:12px;background:#fff;color:#915b46;font-weight:800}[hidden]{display:none!important}`);
 }
