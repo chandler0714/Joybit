@@ -31,6 +31,8 @@ npm run ios
 
 Use a **native development build**. Expo Go and the web preview cannot load the Swift game module. `npm run web` is useful for checking the catalog and login interface.
 
+If `xcode-select -p` points to Command Line Tools instead of Xcode, set `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` for Expo commands. For an existing development build, start Metro with `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer npx expo start --dev-client --localhost --port 8081`. If DevTools shows an Expo CLI connection warning after Metro was stopped or restarted, reload the app from that terminal with `r`, then reopen DevTools with `j`.
+
 ## Verify
 
 ```sh
