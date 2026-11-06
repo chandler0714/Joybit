@@ -1,25 +1,15 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View, type ImageSourcePropType } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { localizedGameTitle, type Game } from '../catalog/catalog';
 import { formatPlayedCount } from '../catalog/formatPlayedCount';
 import { useLanguage } from '../i18n/LanguageProvider';
 
 type Props = { game: Game; favorite: boolean; onOpen(): void; onToggleFavorite(): void };
 
-const illustratedCovers: Partial<Record<Game['coverKey'], ImageSourcePropType>> = {
-  hex: require('../../assets/covers/hex-garden.jpg'),
-  star: require('../../assets/covers/star-trail.jpg'),
-  lane: require('../../assets/covers/lane-glow.jpg'),
-  kitchen: require('../../assets/covers/little-corner-kitchen.jpg'),
-  hidden: require('../../assets/covers/hidden-nook.jpg'),
-};
-
 function Cover({ game, title, coverLabel }: { game: Game; title: string; coverLabel: string }) {
   if (game.coverKey === 'steady-drop') return <Image source={require('../../assets/steady-drop.png')} style={s.image} accessibilityLabel={coverLabel} />;
-  const illustratedCover = illustratedCovers[game.coverKey];
-  if (illustratedCover) return <Image source={illustratedCover} style={s.image} resizeMode="cover" accessibilityLabel={coverLabel} />;
-  const colors: Partial<Record<Game['coverKey'], string>> = { reaction: '#F47A66', memory: '#7768BD', puzzle: '#54A9AC' };
-  return <View style={[s.art, { backgroundColor: colors[game.coverKey] ?? '#173B40' }]} accessibilityLabel={coverLabel}>
+  const colors = { reaction: '#F47A66', memory: '#7768BD', puzzle: '#54A9AC' };
+  return <View style={[s.art, { backgroundColor: colors[game.coverKey] }]} accessibilityLabel={coverLabel}>
     <View style={s.artGlow} />
     {game.coverKey === 'reaction' ? <View style={s.target}><View style={s.targetInner} /></View>
       : game.coverKey === 'memory' ? <View style={s.tileRow}><View style={s.memoryTile}><Text style={s.memorySymbol}>✦</Text></View><View style={s.memoryTile}><Text style={s.memorySymbol}>✦</Text></View></View>

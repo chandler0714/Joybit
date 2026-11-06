@@ -24,17 +24,12 @@ test('played counts use floored integer units from one thousand', () => {
   assert.equal(formatPlayedCount(1000, 'de'), '1 Tsd.');
 });
 
-test('catalog contains the native game and eight bundled mini games without invented counts', () => {
+test('catalog contains the native game and three bundled mini games without invented counts', () => {
   assert.deepEqual(GAMES.map(({ id, kind }) => ({ id, kind })), [
     { id: 'steady-drop', kind: 'native' },
     { id: 'reaction', kind: 'h5' },
     { id: 'memory', kind: 'h5' },
     { id: 'puzzle', kind: 'h5' },
-    { id: 'hex', kind: 'h5' },
-    { id: 'star', kind: 'h5' },
-    { id: 'lane', kind: 'h5' },
-    { id: 'kitchen', kind: 'h5' },
-    { id: 'hidden', kind: 'h5' },
   ]);
   assert.ok(GAMES.every(game => game.playedCount === null));
 });
