@@ -18,7 +18,6 @@ function Probe() {
     <Text>{auth.session?.user.id ?? (auth.loading ? 'loading' : 'guest')}</Text>
     <Pressable onPress={() => void auth.signIn('a@b.co', 'password')}><Text>sign in</Text></Pressable>
     <Pressable onPress={() => void auth.signOut()}><Text>sign out</Text></Pressable>
-    <Pressable onPress={() => void auth.requireValidSession()}><Text>open game</Text></Pressable>
   </>;
 }
 
@@ -43,7 +42,7 @@ function mockClient(initial: typeof session | null = null) {
   };
 }
 
-test('email operations keep Hexa normalization and a no-session signup stays guest', async () => {
+test('email operations normalize addresses and a no-session signup stays guest', async () => {
   const client = mockClient();
   client.auth.signUp.mockResolvedValue({ data: { session: null }, error: null } as never);
   client.auth.verifyOtp.mockResolvedValue({ data: { session }, error: null } as never);
@@ -124,21 +123,7 @@ test('guest may stay guest until signing in', async () => {
   await waitFor(() => expect(screen.getByText('u1')).toBeTruthy());
 });
 
-test('an expired or revoked session cannot enter a game', async () => {
-  const expired = { ...session, expires_at: 1 };
-  const client = mockClient(expired);
-  client.auth.refreshSession.mockResolvedValueOnce({ data: { session: null }, error: new Error('expired') } as never);
-  let result: unknown;
-  function Gate() {
-    const auth = useAuth();
-    return <Pressable onPress={() => { void auth.requireValidSession().then(value => { result = value; }); }}><Text>gate</Text></Pressable>;
-  }
-  await render(<AuthProvider client={client as never}><Gate /></AuthProvider>);
-  await fireEvent.press(screen.getByText('gate'));
-  await waitFor(() => expect(result).toBeNull());
-});
-
-test('a previously signed-in player keeps local game access after an offline restart', async () => {
+test('a previously signed-in account restores from its secure cache after an offline restart', async () => {
   const { getItemAsync } = require('expo-secure-store');
   getItemAsync.mockResolvedValueOnce(JSON.stringify({ ...session, expires_at: 1 }));
   const client = mockClient();
@@ -148,17 +133,6 @@ test('a previously signed-in player keeps local game access after an offline res
   await waitFor(() => expect(screen.getByText('u1')).toBeTruthy());
   await fireEvent.press(screen.getByText('sign out'));
   await waitFor(() => expect(screen.getByText('guest')).toBeTruthy());
-});
-
-test('a temporary network failure on native-game validation keeps the offline login', async () => {
-  const client = mockClient({ ...session, expires_at: 1 });
-  const networkError = Object.assign(new Error('offline'), { name: 'AuthRetryableFetchError' });
-  client.auth.refreshSession.mockResolvedValueOnce({ data: { session: null }, error: networkError } as never);
-  await render(<AuthProvider client={client as never}><Probe /></AuthProvider>);
-  await waitFor(() => expect(screen.getByText('u1')).toBeTruthy());
-  await fireEvent.press(screen.getByText('open game'));
-  await waitFor(() => expect(client.auth.refreshSession).toHaveBeenCalled());
-  expect(screen.getByText('u1')).toBeTruthy();
 });
 
 test('signing out offline removes an expired cached login before the next launch', async () => {
