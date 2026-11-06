@@ -96,7 +96,7 @@ export function AuthScreen({ onClose, initialMode = 'signin' }: { onClose(): voi
   const action: TranslationKey = mode === 'delete' ? 'deleteAccount' : mode === 'verify' ? 'verifySignIn' : mode === 'signup' ? 'register' : mode === 'recover' ? 'sendRecoveryCode' : mode === 'reset' ? 'resetPassword' : 'signIn';
 
   return <SafeAreaView style={s.screen}><ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
-    <Pressable accessibilityLabel={t('backToGames')} onPress={close} style={s.back}><Text style={s.backText}>‹</Text></Pressable>
+    <Pressable accessibilityLabel={t('backToHome')} onPress={close} style={s.back}><Text style={s.backText}>‹</Text></Pressable>
     <Text style={s.brand}>Joybit<Text style={s.dot}>.</Text></Text>
     <Text style={s.heading}>{t(title)}</Text>
     <Text style={s.subtitle}>{t(mode === 'delete' ? 'authDeleteSubtitle' : 'authSubtitle')}</Text>

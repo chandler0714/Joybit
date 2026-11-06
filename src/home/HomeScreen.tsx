@@ -1,24 +1,18 @@
 import React, { useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { Game } from '../catalog/catalog';
-import { AdSlot } from './AdSlot';
 import { Drawer, type DrawerPanel } from './Drawer';
-import { GameCard } from './GameCard';
 import { LANGUAGE_CODES, LANGUAGE_NAMES, type LanguagePreference } from '../i18n/translations';
 import { useLanguage } from '../i18n/LanguageProvider';
 
 type Panel = 'home' | DrawerPanel;
-type Props = { games: readonly Game[]; favoriteIds: string[]; onToggleFavorite(id: string): void; onOpenGame(id: string): void; account: { displayName: string } | null; favoritesStatus?: 'idle' | 'syncing' | 'ready' | 'error'; onRetryFavorites?(): void; onSignIn?(): void; onSignOut?(): void; onDeleteAccount?(): void };
+type Props = { account: { displayName: string } | null; onSignIn?(): void; onSignOut?(): void; onDeleteAccount?(): void };
 
-export function HomeScreen({ games, favoriteIds, onToggleFavorite, onOpenGame, account, favoritesStatus = 'idle', onRetryFavorites, onSignIn, onSignOut, onDeleteAccount }: Props) {
+export function HomeScreen({ account, onSignIn, onSignOut, onDeleteAccount }: Props) {
   const { t, preference, setPreference } = useLanguage();
-  const { width } = useWindowDimensions();
-  const cardWidth = (width - 48) / 2;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [panel, setPanel] = useState<Panel>('home');
-  const visibleGames = panel === 'favorites' ? games.filter((game) => favoriteIds.includes(game.id)) : games;
-  const title = panel === 'home' ? t('homeTitle') : panel === 'favorites' ? t('favoritesTitle') : panel === 'profile' ? t('profileTitle') : t('settingsTitle');
+  const title = panel === 'home' ? t('homeTitle') : panel === 'profile' ? t('profileTitle') : t('settingsTitle');
 
   function openPanel(next: DrawerPanel) { setPanel(next); setDrawerOpen(false); }
 
@@ -26,14 +20,12 @@ export function HomeScreen({ games, favoriteIds, onToggleFavorite, onOpenGame, a
     <View style={s.header}>
       {panel === 'home' ? <Pressable style={s.headerButton} onPress={() => setDrawerOpen(true)} accessibilityLabel={t('menuOpen')}>
         <View style={s.menuLine} /><View style={s.menuLine} /><View style={s.menuLineShort} />
-      </Pressable> : <Pressable style={s.headerButton} onPress={() => setPanel('home')} accessibilityLabel={t('backToGames')}><Text style={s.backText}>‹</Text></Pressable>}
+      </Pressable> : <Pressable style={s.headerButton} onPress={() => setPanel('home')} accessibilityLabel={t('backToHome')}><Text style={s.backText}>‹</Text></Pressable>}
       <Text style={s.brand}>Joybit<Text style={s.brandDot}>.</Text></Text><View style={s.headerButton} />
     </View>
     <View style={s.content}>
       <Text style={s.eyebrow}>{t('homeEyebrow')}</Text><Text style={s.heading}>{title}</Text>
-      {account && favoritesStatus === 'error' && <Pressable onPress={onRetryFavorites} accessibilityLabel={t('retryFavorites')} style={s.syncBanner}><Text style={s.syncText}>{t('favoritesSyncFailed')}</Text></Pressable>}
-      {account && favoritesStatus === 'syncing' && <Text style={s.syncHint}>{t('favoritesSyncing')}</Text>}
-      {panel === 'profile' ? <View style={s.panelCard}><Text style={s.panelTitle}>{account?.displayName ?? t('guest')}</Text><Text style={s.panelDetail}>{account ? t('welcomeJoybit') : t('loginToSync')}</Text>
+      {panel === 'profile' ? <View style={s.panelCard}><Text style={s.panelTitle}>{account?.displayName ?? t('guest')}</Text><Text style={s.panelDetail}>{account ? t('welcomeJoybit') : t('loginToAccount')}</Text>
           {account ? <><Pressable onPress={onSignOut} accessibilityLabel={t('signOut')} style={s.action}><Text style={s.actionText}>{t('signOut')}</Text></Pressable><Pressable onPress={onDeleteAccount} accessibilityLabel={t('deleteAccount')} style={s.action}><Text style={s.dangerText}>{t('deleteAccount')}</Text></Pressable></>
             : <Pressable onPress={onSignIn} accessibilityLabel={t('signInJoybit')} style={s.action}><Text style={s.actionText}>{t('loginRegister')}</Text></Pressable>}</View>
         : panel === 'settings' ? <ScrollView contentContainerStyle={s.settingsContent}>
@@ -47,12 +39,8 @@ export function HomeScreen({ games, favoriteIds, onToggleFavorite, onOpenGame, a
             </View>
             <View style={s.panelCard}><Text style={s.panelTitle}>{t('aboutJoybit')}</Text><Text style={s.panelDetail}>{t('aboutDetail')}</Text></View>
           </ScrollView>
-        : <FlatList testID="game-grid" data={visibleGames} numColumns={2} keyExtractor={(game) => game.id}
-            columnWrapperStyle={s.row} contentContainerStyle={s.grid}
-            renderItem={({ item }) => <View style={{ width: cardWidth }}><GameCard game={item} favorite={favoriteIds.includes(item.id)} onOpen={() => onOpenGame(item.id)} onToggleFavorite={() => onToggleFavorite(item.id)} /></View>}
-            ListEmptyComponent={<Text style={s.empty}>{t('noFavorites')}</Text>} />}
+        : <View style={s.emptyCard} testID="empty-catalog"><Text style={s.emptyIcon}>◇</Text><Text style={s.emptyTitle}>{t('emptyCatalog')}</Text><Text style={s.emptyDetail}>{t('emptyCatalogHint')}</Text></View>}
     </View>
-    {!drawerOpen && <AdSlot />}
     {drawerOpen && <Drawer account={account} onClose={() => setDrawerOpen(false)} onSelect={openPanel} />}
   </SafeAreaView>;
 }
@@ -69,9 +57,6 @@ const s = StyleSheet.create({
   content: { flex: 1, paddingHorizontal: 18, paddingTop: 20 },
   eyebrow: { color: '#78AEB1', fontSize: 10, fontWeight: '900', letterSpacing: 2.2 },
   heading: { color: '#1C3545', fontSize: 28, fontWeight: '900', marginTop: 5, marginBottom: 20, letterSpacing: -0.8 },
-  row: { gap: 12, marginBottom: 12 },
-  grid: { paddingBottom: 18 },
-  empty: { color: '#94A5AE', fontSize: 14, textAlign: 'center', marginTop: 80 },
   panelCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 22, borderWidth: 1, borderColor: '#E9EEF1' },
   settingsContent: { gap: 12, paddingBottom: 24 },
   languageRow: { minHeight: 45, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: '#E9EEF1' },
@@ -82,7 +67,8 @@ const s = StyleSheet.create({
   action: { paddingVertical: 14, marginTop: 12 },
   actionText: { color: '#25767C', fontWeight: '800', fontSize: 15 },
   dangerText: { color: '#BF5B59', fontWeight: '700', fontSize: 14 },
-  syncBanner: { backgroundColor: '#FFF1DF', borderRadius: 10, padding: 12, marginBottom: 12 },
-  syncText: { color: '#90562C', fontWeight: '700', fontSize: 13 },
-  syncHint: { color: '#81939D', fontSize: 12, marginBottom: 12 },
+  emptyCard: { backgroundColor: '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: '#E9EEF1', padding: 28, minHeight: 240, alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: { color: '#78AEB1', fontSize: 48, marginBottom: 10 },
+  emptyTitle: { color: '#1C3545', fontSize: 19, fontWeight: '800', textAlign: 'center' },
+  emptyDetail: { color: '#81939D', fontSize: 14, marginTop: 8, textAlign: 'center', lineHeight: 21 },
 });

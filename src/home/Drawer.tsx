@@ -3,7 +3,7 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLanguage } from '../i18n/LanguageProvider';
 
-export type DrawerPanel = 'profile' | 'favorites' | 'settings';
+export type DrawerPanel = 'profile' | 'settings';
 type Props = { account: { displayName: string } | null; onClose(): void; onSelect(panel: DrawerPanel): void };
 
 export function Drawer({ account, onClose, onSelect }: Props) {
@@ -23,7 +23,6 @@ export function Drawer({ account, onClose, onSelect }: Props) {
       </View></View>
       <View style={s.menu}>
         <MenuItem icon="◉" label={t('profileTitle')} onPress={() => onSelect('profile')} />
-        <MenuItem icon="♡" label={t('menuFavorites')} onPress={() => onSelect('favorites')} />
         <MenuItem icon="⚙" label={t('settingsTitle')} onPress={() => onSelect('settings')} />
       </View>
       <Text style={s.footer}>{t('drawerTagline')}</Text>
