@@ -14,7 +14,6 @@ type AuthContextValue = {
   resetPasswordWithCode(email: string, code: string, password: string): Promise<void>;
   signOut(): Promise<void>;
   deleteAccount(password?: string): Promise<void>;
-  requireValidSession(): Promise<Session | null>;
 };
 
 const Context = createContext<AuthContextValue | null>(null);
@@ -94,21 +93,6 @@ export function AuthProvider({ children, client: suppliedClient, recoveryClientF
       if (error || data?.deleted !== true) throw error ?? new Error('删除账号失败');
       await client.auth.signOut({ scope: 'local' });
       setSession(null);
-    },
-    async requireValidSession() {
-      if (!session) return null;
-      if (session.expires_at && session.expires_at <= Math.floor(Date.now() / 1000) + 30) {
-        const { data, error } = await client.auth.refreshSession();
-        if (error || !data.session) { if (error?.name !== 'AuthRetryableFetchError') setSession(null); return null; }
-        setSession(data.session);
-        return data.session;
-      }
-      const { error } = await client.auth.getUser();
-      if (error) { if (error.name !== 'AuthRetryableFetchError') setSession(null); return null; }
-      const latest = await client.auth.getSession();
-      if (latest.error || !latest.data.session) { if (latest.error?.name !== 'AuthRetryableFetchError') setSession(null); return null; }
-      setSession(latest.data.session);
-      return latest.data.session;
     },
   }), [client, recoveryClientFactory, session, loading]);
   return <Context.Provider value={value}>{children}</Context.Provider>;

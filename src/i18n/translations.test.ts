@@ -16,7 +16,7 @@ test('every released language has complete nonempty copy and substitutions', () 
     assert.equal(values.length, 7);
     for (const value of values) assert.ok(value.trim().length > 0);
   }
-  assert.equal(translate('en', 'playedBy', { count: '12K' }), 'Played by 12K');
+  assert.equal(translate('en', 'emptyCatalog'), 'No games available');
   assert.equal(translate('fr', 'settingsTitle'), 'Paramètres');
   assert.equal(translate('de', 'language'), 'Sprache');
 });
