@@ -1,14 +1,16 @@
 # Douyin mini-game research loop
 
-## Current machine
+## Current machine (2026-11-16)
 
-This Apple Silicon Mac has Xcode's iOS Simulator, but no Android SDK, `adb`, or Android Emulator yet. The iOS Simulator runs simulator builds; it is not a route for installing the App Store release of Douyin. Use an ARM64 Android virtual device for the first pilot, then confirm whether the official Douyin Android app and the chosen mini-game actually run there.
+Android Studio, Android SDK, Platform Tools, and the emulator are installed on this Apple Silicon Mac. The existing `Medium_Phone_API_37.0` ARM64 AVD boots as `emulator-5554` at 1080 × 2400. Its first cold boot was slow and Android briefly showed a System UI not responding dialog; selecting **Wait** allowed it to finish. The official Douyin Android APK version 32.2.6 installed successfully, and Douyin launched and loaded a video. The first-run privacy dialog still needs the owner's choice. Mini-game play has not yet been verified.
+
+The iOS Simulator runs simulator builds; it cannot install the App Store release of Douyin. Use the Android emulator for the first pilot and a dedicated Android phone if a specific game blocks emulators or performs poorly.
 
 ## One-time setup
 
-1. Install [Android Studio for Mac with Apple chip](https://developer.android.com/studio) from the official Android Developers site. The owner must accept Google's Android SDK license during setup.
-2. In Android Studio's Device Manager, create an ARM64 phone AVD with a supported Android system image. Install Android SDK Platform Tools (`adb`) and the Android Emulator.
-3. Install Douyin from its [official Android download page](https://www.douyin.com/downloadpage/app), then let the owner sign in within the emulator. Do not export credentials, cookies, or verification codes.
+1. Install [Android Studio for Mac with Apple chip](https://developer.android.com/studio) from the official Android Developers site. The owner accepts Google's Android SDK license during setup. This machine has completed this step.
+2. In Android Studio's Device Manager, create an ARM64 phone AVD with a supported Android system image and install Android SDK Platform Tools (`adb`) and the Android Emulator. This machine already has `Medium_Phone_API_37.0`; start it with `~/Library/Android/sdk/emulator/emulator -avd Medium_Phone_API_37.0` and verify with `python3 scripts/game_research.py devices`. The script finds `adb` in the standard macOS SDK location even when Platform Tools is absent from `PATH`.
+3. Install Douyin from its [official Android download page](https://www.douyin.com/downloadpage/app), then let the owner handle its first-run privacy choice and sign in within the emulator if needed. Do not export credentials, cookies, or verification codes. Douyin is installed on this AVD as `com.ss.android.ugc.aweme.mobile`.
 4. Check `adb devices -l`, launch Douyin, open one publicly accessible mini-game, and verify that touches, graphics, and audio work. Some games may reject emulators or require a real device; use a dedicated Android phone if this pilot fails.
 
 ## Repeat for each candidate

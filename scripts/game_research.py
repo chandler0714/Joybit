@@ -20,10 +20,19 @@ def now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def find_adb() -> str:
+    if adb := shutil.which("adb"):
+        return adb
+    for sdk_root in (os.environ.get("ANDROID_HOME"), os.environ.get("ANDROID_SDK_ROOT"), str(Path.home() / "Library/Android/sdk")):
+        if sdk_root:
+            candidate = Path(sdk_root) / "platform-tools" / "adb"
+            if candidate.is_file() and os.access(candidate, os.X_OK):
+                return str(candidate)
+    raise RuntimeError("adb is missing. Install Android SDK Platform Tools first.")
+
+
 def adb_command(serial: str | None, *args: str, capture: bool = False) -> bytes:
-    adb = shutil.which("adb")
-    if not adb:
-        raise RuntimeError("adb is missing. Install Android SDK Platform Tools first.")
+    adb = find_adb()
     command = [adb, *(["-s", serial] if serial else []), *args]
     return subprocess.run(command, check=True, stdout=subprocess.PIPE if capture else None).stdout or b""
 
