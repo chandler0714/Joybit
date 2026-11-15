@@ -39,3 +39,5 @@ npm run typecheck
 - The historical `joybit_favorites` migration was applied manually to the shared Supabase project. Joybit no longer uses favorites; the server table and existing data were not altered by this code change.
 
 See [verification.md](docs/verification.md) for the checks performed and current limits.
+
+The [Douyin game research workflow](docs/workflows/douyin-game-research.md) describes the Android emulator pilot and includes a local ADB capture script for screenshots, short recordings, and timestamped play notes.
